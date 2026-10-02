@@ -13,14 +13,19 @@ import androidx.glance.layout.Alignment
 import androidx.glance.layout.Column
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.padding
+import androidx.glance.text.FontWeight
+import androidx.glance.text.Text
+import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.geronfir.wordclock.engine.EnglishVocabulary
-import com.geronfir.wordclock.engine.EnglishWordGrid
+import androidx.compose.ui.unit.sp
+import com.geronfir.wordclock.engine.LocalizationRegistry
 import com.geronfir.wordclock.engine.PhraseFormatter
-import com.geronfir.wordclock.engine.SemanticTime
+import com.geronfir.wordclock.engine.RepresentationStyle
 import com.geronfir.wordclock.engine.TimeExpressionEngine
+import com.geronfir.wordclock.settings.WidgetSettings
+import com.geronfir.wordclock.settings.WidgetSettingsStore
 import com.geronfir.wordclock.widget.render.GridMetrics
 import com.geronfir.wordclock.widget.render.WordGridContent
 
@@ -28,50 +33,71 @@ import com.geronfir.wordclock.widget.render.WordGridContent
  * The Word Clock widget.
  *
  * Glance keeps the composable declarative; the heavy lifting (time -> words)
- * happens in the UI-free engine package. `provideGlance` reads the current time
- * and the instance's size, then hands both to a renderer.
+ * happens in the UI-free engine package. `provideGlance` gathers the three inputs
+ * a render needs — the semantic time, this instance's settings, and its size —
+ * then delegates to a renderer.
+ *
+ * Each instance reads its own settings, so two widgets can differ in language,
+ * format and colour without any global state.
  */
 class WordClockWidget : GlanceAppWidget() {
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
-        val semanticTime = TimeExpressionEngine().expressionNow()
-        val metrics = metricsFor(context, id)
+        val appWidgetId = runCatching {
+            GlanceAppWidgetManager(context).getAppWidgetId(id)
+        }.getOrDefault(-1)
+
+        val settings = runCatching {
+            WidgetSettingsStore(context).load(appWidgetId)
+        }.getOrDefault(WidgetSettings.DEFAULT)
+
+        val vocabulary = LocalizationRegistry.vocabulary(settings.languageTag)
+        val grid = LocalizationRegistry.grid(settings.languageTag)
+        val semanticTime = TimeExpressionEngine(settings.toTimeConfig()).expressionNow()
+        val metrics = WidgetSizeResolver.metricsFor(context, appWidgetId)
+        val spoken = PhraseFormatter(vocabulary).format(semanticTime)
 
         provideContent {
             GlanceTheme {
-                WordClockContent(semanticTime, metrics)
+                Column(
+                    modifier = GlanceModifier
+                        .fillMaxSize()
+                        .background(ColorProvider(Color(settings.backgroundColorArgb)))
+                        .padding(4.dp),
+                    verticalAlignment = Alignment.Vertical.CenterVertically,
+                    horizontalAlignment = Alignment.Horizontal.CenterHorizontally,
+                ) {
+                    when (settings.representationStyle) {
+                        RepresentationStyle.WORD_GRID -> WordGridContent(
+                            grid = grid,
+                            activeWords = semanticTime.activeWords,
+                            vocabulary = vocabulary,
+                            metrics = metrics,
+                            activeColor = Color(settings.activeColorArgb),
+                            inactiveColor = Color(settings.inactiveColorArgb),
+                            spokenText = spoken,
+                        )
+
+                        RepresentationStyle.FLOWING_TEXT -> FlowingTextContent(
+                            text = spoken,
+                            color = Color(settings.activeColorArgb),
+                            metrics = metrics,
+                        )
+                    }
+                }
             }
         }
     }
 
-    /**
-     * Resolves the size *outside* the composition. Reading Glance's `LocalSize`
-     * inside a composable crashes the Kotlin IR backend in this toolchain.
-     */
-    private fun metricsFor(context: Context, id: GlanceId): GridMetrics {
-        val appWidgetId = runCatching {
-            GlanceAppWidgetManager(context).getAppWidgetId(id)
-        }.getOrDefault(-1)
-        return WidgetSizeResolver.metricsFor(context, appWidgetId)
-    }
-
     @Composable
-    private fun WordClockContent(semanticTime: SemanticTime, metrics: GridMetrics) {
-        Column(
-            modifier = GlanceModifier
-                .fillMaxSize()
-                .background(ColorProvider(Color(0xFF101014)))
-                .padding(4.dp),
-            verticalAlignment = Alignment.Vertical.CenterVertically,
-            horizontalAlignment = Alignment.Horizontal.CenterHorizontally,
-        ) {
-            WordGridContent(
-                grid = EnglishWordGrid.grid,
-                activeWords = semanticTime.activeWords,
-                vocabulary = EnglishVocabulary,
-                metrics = metrics,
-                spokenText = PhraseFormatter(EnglishVocabulary).format(semanticTime),
-            )
-        }
+    private fun FlowingTextContent(text: String, color: Color, metrics: GridMetrics) {
+        Text(
+            text = text,
+            style = TextStyle(
+                color = ColorProvider(color),
+                fontSize = metrics.fontSize,
+                fontWeight = FontWeight.Medium,
+            ),
+        )
     }
 }

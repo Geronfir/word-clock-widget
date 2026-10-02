@@ -2,4 +2,12 @@
 <resources>
     <string name="app_name">Word Clock</string>
     <string name="widget_description">Shows the time as words instead of digits.</string>
+
+    <string name="config_title">Word Clock settings</string>
+    <string name="config_use_24_hour">Use 24-hour day periods (morning/afternoon…)</string>
+    <string name="config_show_day_period">Append a day period (AM/PM)</string>
+    <string name="config_style">Display style</string>
+    <string name="config_style_grid">Word grid</string>
+    <string name="config_style_flowing">Flowing text</string>
+    <string name="config_save">Save</string>
 </resources>
