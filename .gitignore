@@ -15,5 +15,11 @@ captures/
 *.iml
 .vscode/
 
+# Agent tooling (local only, not project code)
+.agents/
+.claude/
+.hermes/
+skills-lock.json
+
 # OS
 .DS_Store
