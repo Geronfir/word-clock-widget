@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<lint>
+    <!-- The engine is intentionally UI-free; do not warn about unused Android bits there. -->
+    <issue id="UnusedResources" severity="warning" />
+
+    <!-- Widget receivers are referenced from the manifest only. -->
+    <issue id="Instantiatable" severity="error" />
+
+    <!-- We deliberately hard-code colours as defaults; users can override per widget. -->
+    <issue id="HardcodedText" severity="ignore" />
+</lint>
