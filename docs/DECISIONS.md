@@ -116,3 +116,17 @@ of the day — run in seconds.
 **Trade-off:** the engine cannot use Android's `Time`/`Calendar` helpers. This is
 a benefit, not a cost: `java.time` is the correct API and behaves identically on
 every supported API level via desugaring (minSdk 26 already has it natively).
+
+---
+
+## 8. Compose compiler plugin is mandatory (Kotlin 2.x)
+
+**Decision:** apply `org.jetbrains.kotlin.plugin.compose` (version pinned to the Kotlin version) and
+set `buildFeatures.compose = true`.
+
+**Why:** Glance is built on the Compose runtime. Since Kotlin 2.0 the Compose compiler is a separate
+Gradle plugin; without it `@Composable` functions compile with no `Composer` parameter and Glance's
+composition throws at render time, so the widget shows the host error card "Can't show content".
+The failure is invisible at build time (CI stays green), which is why `scripts/verify-apk.sh` asserts
+the transformed signature on the built APK.
+

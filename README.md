@@ -84,6 +84,9 @@ Locally, the same Gradle wrapper works if you have an Android SDK:
 ./gradlew lintDebug           # Android Lint
 ```
 
+CI also runs `scripts/verify-apk.sh` against the assembled APK to prove it has a launcher activity
+and Compose-transformed code (guards the "Can't show content" widget regression).
+
 ### Toolchain
 
 | Component | Version |
