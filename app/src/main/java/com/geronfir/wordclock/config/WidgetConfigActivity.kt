@@ -4,7 +4,6 @@ import android.app.Activity
 import android.appwidget.AppWidgetManager
 import android.content.Intent
 import android.os.Bundle
-import android.view.Gravity
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.CheckBox
@@ -115,7 +114,6 @@ class WidgetConfigActivity : Activity() {
 
         return ScrollView(this).apply {
             layoutParams = ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT)
-            gravity = Gravity.CENTER_HORIZONTAL
             addView(root)
         }
     }
