@@ -35,9 +35,13 @@ class GridMetricsTest {
 
     @Test
     fun `metrics use the smaller dimension so tall-narrow widgets stay readable`() {
+        // Width 110 -> the 110..149 bucket, even though height is huge.
         val narrow = gridMetricsFor(110f, 400f)
-        val tiny = gridMetricsFor(100f, 100f)
-        assertEquals(tiny.fontSize.value, narrow.fontSize.value, 0.01f)
+        assertEquals(10f, narrow.fontSize.value, 0.01f)
+
+        // A 110-wide, 110-tall widget lands in the same bucket.
+        val square = gridMetricsFor(110f, 110f)
+        assertEquals(square.fontSize.value, narrow.fontSize.value, 0.01f)
     }
 
     @Test
