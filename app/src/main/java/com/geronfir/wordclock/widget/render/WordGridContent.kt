@@ -25,25 +25,23 @@ import com.geronfir.wordclock.engine.WordVocabulary
  * Active words use [activeColor], everything else [inactiveColor]. The renderer
  * consumes the grid plus the engine's active words; it never computes time itself.
  *
- * Accessibility: the lit words are also exposed as a single content description,
- * so screen readers announce "it is quarter past three" instead of reading 25
- * loose cells. Active cells additionally use a bold weight, so the state is not
- * conveyed by colour alone.
+ * Accessibility: the lit words are exposed as one content description, so screen
+ * readers announce "IT IS QUARTER PAST THREE" instead of reading 25 loose cells.
+ * Active cells also use a bold weight, so state is not conveyed by colour alone.
  *
- * Layout note: each cell is a fixed-width box rather than a weighted cell, because
- * Glance's `defaultWeight()` is not available in the pinned Glance version.
+ * [metrics] is passed in rather than read from `LocalSize` — see [GridMetrics].
  */
 @Composable
 fun WordGridContent(
     grid: WordGrid,
     activeWords: Collection<WordKey>,
     vocabulary: WordVocabulary,
+    metrics: GridMetrics,
     activeColor: Color = Color(0xFFE8E8EC),
     inactiveColor: Color = Color(0xFF3A3A42),
     spokenText: String? = null,
 ) {
     val active = activeWords.toSet()
-    val metrics = currentGridMetrics()
 
     Column(
         modifier = GlanceModifier

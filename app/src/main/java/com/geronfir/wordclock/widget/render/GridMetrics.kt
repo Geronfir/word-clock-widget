@@ -1,11 +1,9 @@
 package com.geronfir.wordclock.widget.render
 
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.glance.LocalSize
 
 /**
  * Maps the current widget size to typography and padding.
@@ -17,6 +15,13 @@ import androidx.glance.LocalSize
  * The scaling is intentionally simple (a handful of buckets) so it stays cheap:
  * this runs on every minute tick, and the widget must not do layout maths it
  * cannot afford.
+ *
+ * Sizes arrive as plain dp floats measured by the widget host (see
+ * `WordClockWidget.provideGlance`), not from Glance's `LocalSize`. Reading
+ * `LocalSize` (a `DpSize`, which is a value class) crashes the Kotlin 2.1.21/JVM
+ * IR backend with "Couldn't inline method call: CompositionLocal.get-current".
+ * Measuring from `AppWidgetManager` avoids the bug entirely and is equally
+ * accurate.
  */
 data class GridMetrics(
     val fontSize: TextUnit,
@@ -24,14 +29,7 @@ data class GridMetrics(
     val padding: Dp,
 )
 
-/**
- * Pure function so it can be unit-tested without an Android runtime.
- *
- * Takes plain floats rather than `DpSize`: `DpSize` is a value class, and passing
- * it as a parameter to a function called from a composable that reads
- * `LocalSize.current` crashes the Kotlin/JVM IR backend ("Couldn't inline method
- * call"). Floats keep the compiler happy and the function equally testable.
- */
+/** Pure function so it can be unit-tested without an Android runtime. */
 fun gridMetricsFor(widthDp: Float, heightDp: Float): GridMetrics {
     val smallest = minOf(widthDp, heightDp)
     return when {
@@ -41,12 +39,4 @@ fun gridMetricsFor(widthDp: Float, heightDp: Float): GridMetrics {
         smallest >= 110f -> GridMetrics(10.sp, 52.dp, 6.dp)
         else -> GridMetrics(8.sp, 42.dp, 4.dp)
     }
-}
-
-/** The metrics for the widget currently being composed. */
-@Composable
-fun currentGridMetrics(): GridMetrics {
-    val width = LocalSize.current.width.value
-    val height = LocalSize.current.height.value
-    return gridMetricsFor(width, height)
 }
