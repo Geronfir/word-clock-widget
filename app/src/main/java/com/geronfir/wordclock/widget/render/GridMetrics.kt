@@ -1,7 +1,7 @@
 package com.geronfir.wordclock.widget.render
 
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -20,23 +20,33 @@ import androidx.glance.LocalSize
  */
 data class GridMetrics(
     val fontSize: TextUnit,
-    val cellWidth: androidx.compose.ui.unit.Dp,
-    val padding: androidx.compose.ui.unit.Dp,
-    val horizontalSpacing: androidx.compose.ui.unit.Dp,
+    val cellWidth: Dp,
+    val padding: Dp,
 )
 
-/** Pure function so it can be unit-tested without an Android runtime. */
-fun gridMetricsFor(size: DpSize): GridMetrics {
-    val smallest = minOf(size.width.value, size.height.value)
+/**
+ * Pure function so it can be unit-tested without an Android runtime.
+ *
+ * Takes plain floats rather than `DpSize`: `DpSize` is a value class, and passing
+ * it as a parameter to a function called from a composable that reads
+ * `LocalSize.current` crashes the Kotlin/JVM IR backend ("Couldn't inline method
+ * call"). Floats keep the compiler happy and the function equally testable.
+ */
+fun gridMetricsFor(widthDp: Float, heightDp: Float): GridMetrics {
+    val smallest = minOf(widthDp, heightDp)
     return when {
-        smallest >= 250f -> GridMetrics(16.sp, 88.dp, 12.dp, 8.dp)
-        smallest >= 200f -> GridMetrics(14.sp, 76.dp, 10.dp, 6.dp)
-        smallest >= 150f -> GridMetrics(12.sp, 62.dp, 8.dp, 5.dp)
-        smallest >= 110f -> GridMetrics(10.sp, 52.dp, 6.dp, 4.dp)
-        else -> GridMetrics(8.sp, 42.dp, 4.dp, 2.dp)
+        smallest >= 250f -> GridMetrics(16.sp, 88.dp, 12.dp)
+        smallest >= 200f -> GridMetrics(14.sp, 76.dp, 10.dp)
+        smallest >= 150f -> GridMetrics(12.sp, 62.dp, 8.dp)
+        smallest >= 110f -> GridMetrics(10.sp, 52.dp, 6.dp)
+        else -> GridMetrics(8.sp, 42.dp, 4.dp)
     }
 }
 
 /** The metrics for the widget currently being composed. */
 @Composable
-fun currentGridMetrics(): GridMetrics = gridMetricsFor(LocalSize.current)
+fun currentGridMetrics(): GridMetrics {
+    val width = LocalSize.current.width.value
+    val height = LocalSize.current.height.value
+    return gridMetricsFor(width, height)
+}
