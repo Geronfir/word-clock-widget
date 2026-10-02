@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.geronfir.wordclock.engine.EnglishVocabulary
 import com.geronfir.wordclock.engine.EnglishWordGrid
+import com.geronfir.wordclock.engine.PhraseFormatter
 import com.geronfir.wordclock.engine.SemanticTime
 import com.geronfir.wordclock.engine.TimeExpressionEngine
 import com.geronfir.wordclock.widget.render.WordGridContent
@@ -54,6 +55,7 @@ class WordClockWidget : GlanceAppWidget() {
                 grid = EnglishWordGrid.grid,
                 activeWords = semanticTime.activeWords,
                 vocabulary = EnglishVocabulary,
+                spokenText = PhraseFormatter(EnglishVocabulary).format(semanticTime),
             )
         }
     }
