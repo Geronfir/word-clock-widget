@@ -24,7 +24,11 @@ else
 fi
 
 # --- Check 1: launcher activity ---
-if ! "$AAPT2" dump badging "$APK" | grep -q "launchable-activity:"; then
+# Capture first, then grep the variable. Grepping a live pipe with `grep -q` closes it
+# early; under `set -o pipefail` the upstream aapt2 then dies on SIGPIPE and the whole
+# pipeline reports failure even on a match.
+BADGING="$("$AAPT2" dump badging "$APK")"
+if ! printf '%s\n' "$BADGING" | grep -q "launchable-activity:"; then
   fail "no launchable-activity — the app has no launcher icon and cannot be opened"
 fi
 echo "OK: launcher activity present"
