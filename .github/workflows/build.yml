@@ -32,6 +32,12 @@ jobs:
       - name: Assemble debug APK
         run: ./gradlew assembleDebug --stacktrace
 
+      - name: Install apktool
+        run: sudo apt-get update && sudo apt-get install -y apktool
+
+      - name: Verify APK (launcher + compose compiler)
+        run: bash scripts/verify-apk.sh app/build/outputs/apk/debug/app-debug.apk
+
       - name: Android Lint
         run: ./gradlew lintDebug --stacktrace
 
