@@ -62,8 +62,9 @@ class TimeExpressionEngineTest {
     }
 
     @Test
-    fun `minute 2 rounds forward to five past`() {
-        assertEquals("IT IS FIVE PAST THREE", phrase(3, 2))
+    fun `minute 2 still rounds back to the hour`() {
+        // 2 is nearer 0 than 5, so it stays on the hour.
+        assertEquals("IT IS THREE O'CLOCK", phrase(3, 2))
     }
 
     @Test

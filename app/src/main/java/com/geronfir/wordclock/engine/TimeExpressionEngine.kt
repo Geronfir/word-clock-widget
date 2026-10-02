@@ -44,13 +44,15 @@ class TimeExpressionEngine(private val config: TimeConfig = TimeConfig()) {
 
         val words = buildList {
             add(WordKey.IT_IS)
-            addAll(minuteUnitWords(minuteUnit))
-            when (expressionType) {
-                TimeExpressionType.PAST -> add(WordKey.PAST)
-                TimeExpressionType.TO -> add(WordKey.TO)
-                TimeExpressionType.O_CLOCK -> add(WordKey.OCLOCK)
+            if (expressionType == TimeExpressionType.O_CLOCK) {
+                // "IT IS TWELVE O'CLOCK" — the hour precedes the O'CLOCK marker.
+                add(hourWord(phraseHour))
+                add(WordKey.OCLOCK)
+            } else {
+                addAll(minuteUnitWords(minuteUnit))
+                add(if (expressionType == TimeExpressionType.PAST) WordKey.PAST else WordKey.TO)
+                add(hourWord(phraseHour))
             }
-            add(hourWord(phraseHour))
             if (config.includeDayPeriod) add(dayPeriodWord(baseHour))
         }
 
