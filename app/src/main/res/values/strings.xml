@@ -3,6 +3,9 @@
     <string name="app_name">Word Clock</string>
     <string name="widget_description">Shows the time as words instead of digits.</string>
 
+    <string name="main_description">Shows the time as words instead of digits, right on your home screen.</string>
+    <string name="main_add_hint">To add it: long-press an empty spot on your home screen, tap Widgets, then choose Word Clock.</string>
+
     <string name="config_title">Word Clock settings</string>
     <string name="config_use_24_hour">Use 24-hour day periods (morning/afternoon…)</string>
     <string name="config_show_day_period">Append a day period (AM/PM)</string>
