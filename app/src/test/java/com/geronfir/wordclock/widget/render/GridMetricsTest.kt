@@ -10,11 +10,20 @@ import org.junit.Test
  * `gridMetricsFor` / `flowingTextMetrics` are pure functions precisely so this can
  * run as a plain JVM test: no emulator, no instrumentation.
  *
- * The important guarantee, and the reason the old bucket approach was replaced, is
- * that the rendered content always fits the widget at *any* size the user drags it
- * to — including the extremes.
+ * The core guarantee — and the reason the old bucket approach was replaced — is
+ * that the font never exceeds the size at which the content still fits the widget,
+ * at *any* size the user drags it to (including the extremes). These tests assert
+ * that directly against the fit bounds, not against remembered point sizes.
  */
 class GridMetricsTest {
+
+    /** The largest font that can fit one 5-column grid cell, per the production rule. */
+    private fun gridFitCeiling(width: Float, height: Float): Float {
+        val padding = (minOf(width, height) * 0.03f).coerceIn(2f, 12f)
+        val usableWidth = (width - 2f * padding).coerceAtLeast(1f)
+        val usableHeight = (height - 2f * padding).coerceAtLeast(1f)
+        return minOf(usableWidth / 5f * 0.24f, usableHeight / 5f * 0.6f)
+    }
 
     @Test
     fun `font size grows with widget size`() {
@@ -26,21 +35,25 @@ class GridMetricsTest {
     }
 
     @Test
-    fun `the grid always fits inside the widget width`() {
-        val sizes = listOf(40, 60, 80, 110, 160, 220, 300, 500)
+    fun `the grid font never exceeds the size that fits a cell`() {
+        val sizes = listOf(20, 30, 60, 80, 110, 160, 220, 300, 500, 5000)
         sizes.forEach { s ->
             val m = gridMetricsFor(s.toFloat(), s.toFloat())
-            val rowWidth = m.cellWidth.value * 5
-            assertTrue("row width $rowWidth > widget $s", rowWidth <= s.toFloat() + 0.5f)
+            val ceiling = gridFitCeiling(s.toFloat(), s.toFloat())
+            assertTrue(
+                "font ${m.fontSize.value} > fit ceiling $ceiling at $s",
+                m.fontSize.value <= ceiling + 0.01f,
+            )
         }
     }
 
     @Test
-    fun `an extremely small widget still yields a readable, non-overflowing grid`() {
+    fun `an extremely small widget shrinks the font instead of overflowing`() {
+        // This is the regression the fix targets: no hard floor may push the font
+        // back above the size that fits.
         val m = gridMetricsFor(30f, 30f)
-        assertTrue("font >= floor", m.fontSize.value >= MIN_FONT_SP - 0.01f)
-        assertTrue("cell width positive", m.cellWidth.value > 0f)
-        assertTrue("row fits", m.cellWidth.value * 5 <= 30f + 0.5f)
+        assertTrue("font must shrink", m.fontSize.value < 4f)
+        assertTrue("still positive", m.fontSize.value > 0f)
     }
 
     @Test
@@ -71,7 +84,21 @@ class GridMetricsTest {
         val narrow = flowingTextMetrics(80f, 110f, "JAM SETENGAH EMPAT".length)
         val wide = flowingTextMetrics(400f, 110f, "JAM SETENGAH EMPAT".length)
         assertTrue("narrow < wide", narrow.fontSize.value < wide.fontSize.value)
-        assertTrue("narrow still readable", narrow.fontSize.value >= MIN_FONT_SP - 0.01f)
+        assertTrue("narrow still positive", narrow.fontSize.value > 0f)
+    }
+
+    @Test
+    fun `flowing text font never exceeds the width that fits the phrase`() {
+        val chars = 20
+        listOf(40, 80, 160, 320, 640).forEach { w ->
+            val m = flowingTextMetrics(w.toFloat(), 120f, chars)
+            val padding = (minOf(w.toFloat(), 120f) * 0.03f).coerceIn(2f, 12f)
+            val ceiling = (w - 2f * padding) / chars * 1.7f
+            assertTrue(
+                "font ${m.fontSize.value} > fit ceiling $ceiling at width $w",
+                m.fontSize.value <= ceiling + 0.01f,
+            )
+        }
     }
 
     @Test
@@ -83,9 +110,10 @@ class GridMetricsTest {
 
     @Test
     fun `degenerate sizes never crash and stay within bounds`() {
-        listOf(0f, -50f, Float.NaN).forEach { bad ->
+        listOf(0f, -50f, Float.NaN, Float.POSITIVE_INFINITY).forEach { bad ->
             val m = gridMetricsFor(bad, bad)
-            assertTrue("font in range at $bad", m.fontSize.value in MIN_FONT_SP..MAX_FONT_SP)
+            assertTrue("font finite at $bad", m.fontSize.value.isFinite())
+            assertTrue("font non-negative at $bad", m.fontSize.value >= 0f)
             assertTrue("cell width positive at $bad", m.cellWidth.value > 0f)
         }
     }
