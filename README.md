@@ -68,8 +68,8 @@ app/src/main/java/com/geronfir/wordclock/
 └── config/      One-screen configuration activity
 ```
 
-The engine has **no** Android imports, which is why all 53 tests run as plain JVM
-tests in CI — no emulator, no instrumentation.
+The engine has **no** Android imports, which is why every test runs as a plain JVM
+test in CI — no emulator, no instrumentation.
 
 ## Building
 
@@ -79,7 +79,7 @@ debug APK and test results are uploaded as workflow artifacts.
 Locally, the same Gradle wrapper works if you have an Android SDK:
 
 ```bash
-./gradlew testDebugUnitTest   # 53 unit tests
+./gradlew testDebugUnitTest   # all unit tests
 ./gradlew assembleDebug       # app/build/outputs/apk/debug/*.apk
 ./gradlew lintDebug           # Android Lint
 ```
@@ -101,7 +101,7 @@ and Compose-transformed code (guards the "Can't show content" widget regression)
 
 ## Testing
 
-53 unit tests, all JVM-only:
+71 unit tests, all JVM-only:
 
 | Suite | Covers |
 |---|---|
@@ -109,7 +109,9 @@ and Compose-transformed code (guards the "Can't show content" widget regression)
 | `EnglishWordGridTest` | grid shape, unique tokens, active-cell mapping, shared FIVE/TEN cells |
 | `EdgeCaseTest` | all 1440 minutes of the day, midnight/noon, DST transitions, leap day, rounding off |
 | `LocalizationExtensibilityTest` | a second language with different word order and a different grid |
-| `GridMetricsTest` | responsive size → typography mapping |
+| `IndonesianLocalizationTest` | hour-first phrasing, lebih/kurang, the setengah half-hour rule, day periods |
+| `GridMetricsTest` | continuous size → typography mapping; the grid fits at 30 dp and 5000 dp |
+| `GridMetricsScaleTest` | the user's font-size preference and its guards |
 
 ## Design decisions
 

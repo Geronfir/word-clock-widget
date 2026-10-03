@@ -50,3 +50,10 @@ Any change touching the manifest, `app/build.gradle.kts`,
 `gradle/libs.versions.toml`, or widget code must keep `scripts/verify-apk.sh`
 passing (it asserts a launcher activity exists and that the app's own composables
 carry a `Composer` parameter).
+
+## 9. Typography scales continuously and must fit the widget
+`render/GridMetrics.kt` computes the font size and cell width from the widget's
+real size — no fixed buckets. A word grid's 5-column row must never be wider than
+the widget: derive the cell width from the usable width and cap the font by both
+cell width and row height. Keep `gridMetricsFor` / `flowingTextMetrics` pure so the
+"fits at any size" guarantee stays unit-tested (including the extremes).

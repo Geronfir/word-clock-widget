@@ -8,19 +8,14 @@ import androidx.compose.ui.unit.sp
 /**
  * Maps the current widget size to typography and padding.
  *
- * A word clock is placed at many sizes, from a small 2x1 tile to a wide 4x3
- * board. Rather than one hard-coded font size, the grid scales with the space the
- * user actually gave it.
+ * The size is computed **continuously** from the widget's real size rather than
+ * from fixed buckets. Buckets looked fine at the sizes we happened to test, but
+ * they broke at the extremes: a small widget stayed on a bucket whose 5-column
+ * row was wider than the widget (the text overflowed its parent), and a large one
+ * could snap to a size that no longer matched the box.
  *
- * The scaling is intentionally simple (a handful of buckets) so it stays cheap:
- * this runs on every minute tick, and the widget must not do layout maths it
- * cannot afford.
- *
- * Sizes arrive as plain dp floats measured from Glance's `LocalSize` inside the
- * composition (see `WordClockWidget`). `LocalSize` is only ever read and
- * immediately converted to `Float`; the `DpSize` value class is never passed
- * across a composable boundary, which is what used to crash the Kotlin IR
- * backend with "Couldn't inline method call: CompositionLocal.get-current".
+ * Everything here is a pure function of the widget size, so it can be unit-tested
+ * on a plain JVM and never has to guess.
  */
 data class GridMetrics(
     val fontSize: TextUnit,
@@ -28,18 +23,87 @@ data class GridMetrics(
     val padding: Dp,
 )
 
-/** Pure function so it can be unit-tested without an Android runtime. */
-fun gridMetricsFor(widthDp: Float, heightDp: Float, fontScale: Float = 1.0f): GridMetrics {
-    val smallest = minOf(widthDp, heightDp)
-    val base = when {
-        smallest >= 250f -> GridMetrics(16.sp, 88.dp, 12.dp)
-        smallest >= 200f -> GridMetrics(14.sp, 76.dp, 10.dp)
-        smallest >= 150f -> GridMetrics(12.sp, 62.dp, 8.dp)
-        smallest >= 110f -> GridMetrics(10.sp, 52.dp, 6.dp)
-        else -> GridMetrics(8.sp, 42.dp, 4.dp)
-    }
-    // The user's font-size preference scales only the text; cell widths and
-    // padding stay tied to the widget size so the grid keeps its alignment.
-    val scale = fontScale.takeIf { it.isFinite() && it > 0f } ?: 1.0f
-    return base.copy(fontSize = (base.fontSize.value * scale).sp)
+/** Hard floor/ceiling so a degenerate size can never produce unreadable text. */
+internal const val MIN_FONT_SP = 4f
+internal const val MAX_FONT_SP = 48f
+
+/**
+ * Metrics for the word-grid style.
+ *
+ * The grid is [columns] x [rows] cells; every row must fit inside the widget, so
+ * the cell width is derived from the width (minus padding), and the font is the
+ * smaller of "fits a cell's width" and "fits a row's height". That guarantees the
+ * matrix never spills outside the widget at any size the user drags it to.
+ *
+ * @param fontScale the user's font-size preference (1.0 = as computed).
+ */
+fun gridMetricsFor(
+    widthDp: Float,
+    heightDp: Float,
+    fontScale: Float = 1.0f,
+    columns: Int = 5,
+    rows: Int = 5,
+): GridMetrics {
+    val width = widthDp.coerceAtLeast(1f)
+    val height = heightDp.coerceAtLeast(1f)
+    val cols = columns.coerceAtLeast(1)
+    val rowCount = rows.coerceAtLeast(1)
+
+    val padding = (minOf(width, height) * 0.03f).coerceIn(2f, 12f)
+    val usableWidth = (width - 2f * padding).coerceAtLeast(1f)
+    val usableHeight = (height - 2f * padding).coerceAtLeast(1f)
+
+    val cellWidth = usableWidth / cols
+    // A cell holds one word (up to ~7 characters like "QUARTER"); ~0.24 of the
+    // cell width keeps the longest word inside its cell.
+    val fontFromWidth = cellWidth * 0.24f
+    val fontFromHeight = (usableHeight / rowCount) * 0.6f
+
+    val fontSize = minOf(fontFromWidth, fontFromHeight)
+        .coerceIn(MIN_FONT_SP, MAX_FONT_SP) * saneScale(fontScale)
+
+    return GridMetrics(
+        fontSize = fontSize.coerceIn(MIN_FONT_SP, MAX_FONT_SP).sp,
+        cellWidth = cellWidth.dp,
+        padding = padding.dp,
+    )
 }
+
+/**
+ * Metrics for the flowing-text style.
+ *
+ * There is no grid here, just one phrase. The font is chosen so [charCount]
+ * characters fit across the widget width, and is also capped by the widget height
+ * so a very wide, very short widget cannot produce text taller than its box.
+ */
+fun flowingTextMetrics(
+    widthDp: Float,
+    heightDp: Float,
+    charCount: Int,
+    fontScale: Float = 1.0f,
+): GridMetrics {
+    val width = widthDp.coerceAtLeast(1f)
+    val height = heightDp.coerceAtLeast(1f)
+    val chars = charCount.coerceAtLeast(1)
+
+    val padding = (minOf(width, height) * 0.03f).coerceIn(2f, 12f)
+    val usableWidth = (width - 2f * padding).coerceAtLeast(1f)
+    val usableHeight = (height - 2f * padding).coerceAtLeast(1f)
+
+    // ~1.7x the per-character slot keeps a proportional font inside the width.
+    val fontFromWidth = (usableWidth / chars) * 1.7f
+    val fontFromHeight = usableHeight * 0.5f
+
+    val fontSize = minOf(fontFromWidth, fontFromHeight)
+        .coerceIn(MIN_FONT_SP, MAX_FONT_SP) * saneScale(fontScale)
+
+    return GridMetrics(
+        fontSize = fontSize.coerceIn(MIN_FONT_SP, MAX_FONT_SP).sp,
+        cellWidth = usableWidth.dp,
+        padding = padding.dp,
+    )
+}
+
+/** Guards against a zero, negative or non-finite user scale. */
+private fun saneScale(fontScale: Float): Float =
+    fontScale.takeIf { it.isFinite() && it > 0f } ?: 1.0f
