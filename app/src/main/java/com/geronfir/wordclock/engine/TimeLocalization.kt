@@ -3,16 +3,12 @@ package com.geronfir.wordclock.engine
 /**
  * Turns a [SemanticTime] into the words of *one language*.
  *
- * A language owns two things the widget needs:
- *  - [format]: the readable phrase (flowing-text style), and
- *  - [activeWords]: which [WordKey]s to light in a word grid.
- *
- * Both must come from the same place. English reads minutes *past* the hour, so
- * the engine's own word list happens to fit; Indonesian reads the hour first and
- * the half hour as *toward the next hour*, so its grid words are genuinely
- * different from the English ones ("JAM SETENGAH EMPAT", not "... LEBIH TIGA").
- * Keeping [activeWords] here is what stops the grid and the phrase from drifting
- * apart in a non-English language.
+ * A localization produces a readable phrase. It also optionally produces the
+ * [WordKey]s to light in a word grid — but only for languages that *have* a grid
+ * (see [LocalizationRegistry.gridOrNull]). A word grid is a fixed physical
+ * matrix read left-to-right, top-to-bottom; a language whose phrase order varies
+ * by case cannot be expressed by one matrix, so it returns flowing text instead
+ * and never lights a grid.
  */
 interface TimeLocalization {
     val languageTag: String
@@ -20,8 +16,8 @@ interface TimeLocalization {
     /** The readable phrase, in this language's own word order. */
     fun format(time: SemanticTime): String
 
-    /** The words to light in a word grid, in this language's own order. */
-    fun activeWords(time: SemanticTime): List<WordKey>
+    /** The words to light in this language's grid, or `null` if it has no grid. */
+    fun gridWords(time: SemanticTime): List<WordKey>?
 }
 
 /**
@@ -34,5 +30,5 @@ object EnglishTimeLocalization : TimeLocalization {
     override fun format(time: SemanticTime): String =
         PhraseFormatter(EnglishVocabulary).format(time)
 
-    override fun activeWords(time: SemanticTime): List<WordKey> = time.activeWords
+    override fun gridWords(time: SemanticTime): List<WordKey> = time.activeWords
 }

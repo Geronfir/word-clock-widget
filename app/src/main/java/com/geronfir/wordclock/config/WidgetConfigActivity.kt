@@ -146,6 +146,11 @@ class WidgetConfigActivity : Activity() {
             )
         }
         root.addView(styleGroup)
+        root.addView(TextView(this).apply {
+            text = getString(R.string.config_style_note)
+            textSize = 13f
+            setPadding(0, 0, 0, 0)
+        })
 
         // --- Colours ----------------------------------------------------------
         root.addView(sectionLabel(R.string.config_theme, dp(12)))

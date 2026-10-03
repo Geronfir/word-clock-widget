@@ -51,14 +51,12 @@ class WordClockWidget : GlanceAppWidget() {
         }.getOrDefault(WidgetSettings.DEFAULT)
 
         val vocabulary = LocalizationRegistry.vocabulary(settings.languageTag)
-        val grid = LocalizationRegistry.grid(settings.languageTag)
+        val grid = LocalizationRegistry.gridOrNull(settings.languageTag)
         val localization = LocalizationRegistry.localization(settings.languageTag)
         val semanticTime = TimeExpressionEngine(settings.toTimeConfig()).expressionNow()
         val metrics = WidgetSizeResolver.metricsFor(context, appWidgetId, settings.fontScale)
         val spoken = localization.format(semanticTime)
-        // The grid must light the *localized* words, not the engine's English
-        // order — otherwise Indonesian would show "JAM SETENGAH LEBIH TIGA".
-        val gridWords = localization.activeWords(semanticTime)
+        val gridWords = localization.gridWords(semanticTime)
 
         provideContent {
             GlanceTheme {
@@ -70,8 +68,14 @@ class WordClockWidget : GlanceAppWidget() {
                     verticalAlignment = Alignment.Vertical.CenterVertically,
                     horizontalAlignment = Alignment.Horizontal.CenterHorizontally,
                 ) {
-                    when (settings.representationStyle) {
-                        RepresentationStyle.WORD_GRID -> WordGridContent(
+                    // A word grid is a physical layout that only some languages
+                    // have. When the language has none (its phrase order cannot be
+                    // laid out as a matrix), fall back to flowing text rather than
+                    // light the wrong cells.
+                    if (settings.representationStyle == RepresentationStyle.WORD_GRID &&
+                        grid != null && gridWords != null
+                    ) {
+                        WordGridContent(
                             grid = grid,
                             activeWords = gridWords,
                             vocabulary = vocabulary,
@@ -80,8 +84,8 @@ class WordClockWidget : GlanceAppWidget() {
                             inactiveColor = Color(settings.inactiveColorArgb),
                             spokenText = spoken,
                         )
-
-                        RepresentationStyle.FLOWING_TEXT -> FlowingTextContent(
+                    } else {
+                        FlowingTextContent(
                             text = spoken,
                             color = Color(settings.activeColorArgb),
                             metrics = metrics,

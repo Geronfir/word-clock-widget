@@ -1,14 +1,14 @@
-fix(i18n): grid now shows the localized words, not the English order
+fix(i18n): make the word grid English-only; Indonesian uses flowing text
 
-Gitar review caught a real bug: in word-grid mode the widget passed the engine's
-activeWords (English order) to the grid, so Indonesian 03:30 lit "JAM SETENGAH
-LEBIH TIGA" while the phrase said "JAM SETENGAH EMPAT".
+Gitar's second review was right that a fixed 5x5 matrix cannot spell Indonesian
+out: the phrase order varies by case (JAM TIGA LEBIH SEPULUH vs JAM SETENGAH
+EMPAT), and WordGrid.activeCells matches by key with no notion of position, so a
+DUA cell would light for both the hour and the tens word.
 
-TimeLocalization now owns both the phrase and the grid words; the widget uses
-localization.activeWords(). Indonesian derives one token sequence for both, so
-they can never disagree. The grid gains a second DUA cell (needed for "dua
-puluh"/"dua belas") and drops the never-lit PUKUL cell.
+Rather than a fragile grid, the honest model is that a word grid is a physical
+layout only some languages have. TimeLocalization.gridWords() now returns null
+for a language without a grid, LocalizationRegistry exposes gridOrNull(), and the
+widget falls back to flowing text. English keeps its grid unchanged; Indonesian
+renders as correct flowing text. The config screen notes the grid is English-only.
 
-Also fixes the release workflow: workflow_dispatch now checks out the requested
-tag instead of the dispatching branch, and the tag input is read via env vars
-rather than interpolated into the shell.
+Removes IndonesianWordGrid and its key-order test.

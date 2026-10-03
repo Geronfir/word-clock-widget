@@ -27,7 +27,11 @@ object IndonesianTimeLocalization : TimeLocalization {
     override fun format(time: SemanticTime): String =
         tokens(time).joinToString(" ") { IndonesianVocabulary.word(it) }
 
-    override fun activeWords(time: SemanticTime): List<WordKey> = tokens(time).distinct()
+    /**
+     * Indonesian has no word grid: its phrase order varies by case, so no single
+     * static matrix can spell it out. The widget renders it as flowing text.
+     */
+    override fun gridWords(time: SemanticTime): List<WordKey>? = null
 
     /** The word sequence for [time], in Indonesian order, as language-neutral keys. */
     private fun tokens(time: SemanticTime): List<WordKey> {

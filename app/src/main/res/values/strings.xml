@@ -19,6 +19,7 @@
     <string name="config_style">Display style</string>
     <string name="config_style_grid">Word grid</string>
     <string name="config_style_flowing">Flowing text</string>
+    <string name="config_style_note">Note: the word grid is English-only. Other languages always use flowing text.</string>
 
     <string name="config_theme">Colours</string>
     <string name="theme_midnight">Midnight (light on dark)</string>

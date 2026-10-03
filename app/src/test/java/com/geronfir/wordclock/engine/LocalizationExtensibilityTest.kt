@@ -91,7 +91,8 @@ class LocalizationExtensibilityTest {
     @Test
     fun `registry falls back to english for an unknown language`() {
         assertEquals(EnglishVocabulary, LocalizationRegistry.vocabulary("zz"))
-        assertEquals(EnglishWordGrid.grid, LocalizationRegistry.grid("zz"))
+        assertEquals(EnglishTimeLocalization, LocalizationRegistry.localization("zz"))
+        assertEquals(null, LocalizationRegistry.gridOrNull("zz"))
         assertTrue(LocalizationRegistry.isFullySupported("en"))
         assertTrue(!LocalizationRegistry.isFullySupported("zz"))
     }
