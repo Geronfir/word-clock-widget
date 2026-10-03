@@ -30,13 +30,17 @@ data class GridMetrics(
 )
 
 /** Pure function so it can be unit-tested without an Android runtime. */
-fun gridMetricsFor(widthDp: Float, heightDp: Float): GridMetrics {
+fun gridMetricsFor(widthDp: Float, heightDp: Float, fontScale: Float = 1.0f): GridMetrics {
     val smallest = minOf(widthDp, heightDp)
-    return when {
+    val base = when {
         smallest >= 250f -> GridMetrics(16.sp, 88.dp, 12.dp)
         smallest >= 200f -> GridMetrics(14.sp, 76.dp, 10.dp)
         smallest >= 150f -> GridMetrics(12.sp, 62.dp, 8.dp)
         smallest >= 110f -> GridMetrics(10.sp, 52.dp, 6.dp)
         else -> GridMetrics(8.sp, 42.dp, 4.dp)
     }
+    // The user's font-size preference scales only the text; cell widths and
+    // padding stay tied to the widget size so the grid keeps its alignment.
+    val scale = fontScale.takeIf { it.isFinite() && it > 0f } ?: 1.0f
+    return base.copy(fontSize = (base.fontSize.value * scale).sp)
 }

@@ -21,7 +21,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.geronfir.wordclock.engine.LocalizationRegistry
-import com.geronfir.wordclock.engine.PhraseFormatter
 import com.geronfir.wordclock.engine.RepresentationStyle
 import com.geronfir.wordclock.engine.TimeExpressionEngine
 import com.geronfir.wordclock.settings.WidgetSettings
@@ -52,10 +51,12 @@ class WordClockWidget : GlanceAppWidget() {
         }.getOrDefault(WidgetSettings.DEFAULT)
 
         val vocabulary = LocalizationRegistry.vocabulary(settings.languageTag)
-        val grid = LocalizationRegistry.grid(settings.languageTag)
+        val grid = LocalizationRegistry.gridOrNull(settings.languageTag)
+        val localization = LocalizationRegistry.localization(settings.languageTag)
         val semanticTime = TimeExpressionEngine(settings.toTimeConfig()).expressionNow()
-        val metrics = WidgetSizeResolver.metricsFor(context, appWidgetId)
-        val spoken = PhraseFormatter(vocabulary).format(semanticTime)
+        val metrics = WidgetSizeResolver.metricsFor(context, appWidgetId, settings.fontScale)
+        val spoken = localization.format(semanticTime)
+        val gridWords = localization.gridWords(semanticTime)
 
         provideContent {
             GlanceTheme {
@@ -67,18 +68,24 @@ class WordClockWidget : GlanceAppWidget() {
                     verticalAlignment = Alignment.Vertical.CenterVertically,
                     horizontalAlignment = Alignment.Horizontal.CenterHorizontally,
                 ) {
-                    when (settings.representationStyle) {
-                        RepresentationStyle.WORD_GRID -> WordGridContent(
+                    // A word grid is a physical layout that only some languages
+                    // have. When the language has none (its phrase order cannot be
+                    // laid out as a matrix), fall back to flowing text rather than
+                    // light the wrong cells.
+                    if (settings.representationStyle == RepresentationStyle.WORD_GRID &&
+                        grid != null && gridWords != null
+                    ) {
+                        WordGridContent(
                             grid = grid,
-                            activeWords = semanticTime.activeWords,
+                            activeWords = gridWords,
                             vocabulary = vocabulary,
                             metrics = metrics,
                             activeColor = Color(settings.activeColorArgb),
                             inactiveColor = Color(settings.inactiveColorArgb),
                             spokenText = spoken,
                         )
-
-                        RepresentationStyle.FLOWING_TEXT -> FlowingTextContent(
+                    } else {
+                        FlowingTextContent(
                             text = spoken,
                             color = Color(settings.activeColorArgb),
                             metrics = metrics,

@@ -7,10 +7,31 @@
     <string name="main_add_hint">To add it: long-press an empty spot on your home screen, tap Widgets, then choose Word Clock.</string>
 
     <string name="config_title">Word Clock settings</string>
+
+    <string name="config_language">Language</string>
+    <string name="config_language_en">English</string>
+    <string name="config_language_id">Bahasa Indonesia</string>
+
+    <string name="config_format">Format</string>
     <string name="config_use_24_hour">Use 24-hour day periods (morning/afternoon…)</string>
     <string name="config_show_day_period">Append a day period (AM/PM)</string>
+
     <string name="config_style">Display style</string>
     <string name="config_style_grid">Word grid</string>
     <string name="config_style_flowing">Flowing text</string>
+    <string name="config_style_note">Note: the word grid is English-only. Other languages always use flowing text.</string>
+
+    <string name="config_theme">Colours</string>
+    <string name="theme_midnight">Midnight (light on dark)</string>
+    <string name="theme_daylight">Daylight (dark on light)</string>
+    <string name="theme_amber">Amber</string>
+    <string name="theme_ocean">Ocean</string>
+
+    <string name="config_font_size">Font size</string>
+    <string name="config_font_small">Small</string>
+    <string name="config_font_default">Default</string>
+    <string name="config_font_medium">Large</string>
+    <string name="config_font_large">Extra large</string>
+
     <string name="config_save">Save</string>
 </resources>
