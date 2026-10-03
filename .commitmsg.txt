@@ -1,4 +1,6 @@
-fix(test): close the KDoc properly in IndonesianLocalizationTest
+fix(i18n): give Indonesian its own day-period buckets
 
-The comment contained `*lebih*/*kurang*`; the `*/` inside it terminated the
-block comment early and broke compilation.
+The English engine marks 05:00-11:59 as morning, which is wrong for Indonesian
+(03:00 is still "pagi", 11:00 is "siang", 15:00 is "sore"). The Indonesian
+formatter now derives pagi/siang/sore/malam from the real 24h hour, and the test
+covers each boundary.

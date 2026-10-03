@@ -53,10 +53,14 @@ class IndonesianLocalizationTest {
     }
 
     @Test
-    fun `day period is appended when requested`() {
-        val morning = TimeExpressionEngine(TimeConfig(includeDayPeriod = true))
-            .expressionAt(3, 0)
-        assertEquals("JAM TIGA PAGI", localization.format(morning))
+    fun `day period is appended using indonesian buckets`() {
+        val engine = TimeExpressionEngine(TimeConfig(includeDayPeriod = true))
+        fun at(hour: Int) = localization.format(engine.expressionAt(hour, 0))
+        assertEquals("JAM TIGA PAGI", at(3))
+        assertEquals("JAM SEPULUH PAGI", at(10))
+        assertEquals("JAM SEBELAS SIANG", at(11))
+        assertEquals("JAM TIGA SORE", at(15))
+        assertEquals("JAM DELAPAN MALAM", at(20))
     }
 
     @Test

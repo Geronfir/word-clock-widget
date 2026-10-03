@@ -50,7 +50,7 @@ object IndonesianTimeLocalization : TimeLocalization {
                     addAll(minuteWords(60 - minute))
                 }
             }
-            if (time.hasDayPeriod) add(dayPeriodWord(time.dayPeriod))
+            if (time.hasDayPeriod) add(dayPeriodWord(time.hour24))
         }
 
         return parts.joinToString(" ")
@@ -83,12 +83,15 @@ object IndonesianTimeLocalization : TimeLocalization {
         else -> emptyList()
     }
 
-    private fun dayPeriodWord(period: DayPeriod): String = IndonesianVocabulary.word(
-        when (period) {
-            DayPeriod.MORNING -> WordKey.IN_THE_MORNING   // PAGI
-            DayPeriod.AFTERNOON -> WordKey.IN_THE_AFTERNOON // SIANG
-            DayPeriod.EVENING -> WordKey.IN_THE_EVENING   // SORE
-            DayPeriod.NIGHT -> WordKey.AT_NIGHT           // MALAM
+    private fun dayPeriodWord(hour24: Int): String = IndonesianVocabulary.word(
+        // Indonesian day parts differ from the English engine's buckets (which
+        // treat 05:00–11:59 as morning). Indonesian: 00–10 pagi, 11–14 siang,
+        // 15–17 sore, 18–23 malam.
+        when (hour24) {
+            in 0..10 -> WordKey.IN_THE_MORNING    // PAGI
+            in 11..14 -> WordKey.IN_THE_AFTERNOON // SIANG
+            in 15..17 -> WordKey.IN_THE_EVENING   // SORE
+            else -> WordKey.AT_NIGHT              // MALAM
         },
     )
 }
