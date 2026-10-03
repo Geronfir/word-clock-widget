@@ -71,7 +71,10 @@ outside the composition sidesteps the bug entirely.
 
 **Trade-off:** the first render uses a fallback size until the host reports
 options. `onAppWidgetOptionsChanged` triggers an immediate re-render once real
-dimensions are known, so the user never sees a stuck layout.
+dimensions are known, so the user never sees a stuck layout. The option values
+are already in dp ("in dips" per the platform docs), so they are passed through
+unchanged — dividing by `displayMetrics.density` would shrink every widget and
+pin it to the smallest font bucket.
 
 ---
 
