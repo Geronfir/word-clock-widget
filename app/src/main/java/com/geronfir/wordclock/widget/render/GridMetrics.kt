@@ -44,8 +44,8 @@ fun gridMetricsFor(
     columns: Int = 5,
     rows: Int = 5,
 ): GridMetrics {
-    val width = widthDp.coerceAtLeast(1f)
-    val height = heightDp.coerceAtLeast(1f)
+    val width = saneSize(widthDp)
+    val height = saneSize(heightDp)
     val cols = columns.coerceAtLeast(1)
     val rowCount = rows.coerceAtLeast(1)
 
@@ -82,8 +82,8 @@ fun flowingTextMetrics(
     charCount: Int,
     fontScale: Float = 1.0f,
 ): GridMetrics {
-    val width = widthDp.coerceAtLeast(1f)
-    val height = heightDp.coerceAtLeast(1f)
+    val width = saneSize(widthDp)
+    val height = saneSize(heightDp)
     val chars = charCount.coerceAtLeast(1)
 
     val padding = (minOf(width, height) * 0.03f).coerceIn(2f, 12f)
@@ -107,3 +107,12 @@ fun flowingTextMetrics(
 /** Guards against a zero, negative or non-finite user scale. */
 private fun saneScale(fontScale: Float): Float =
     fontScale.takeIf { it.isFinite() && it > 0f } ?: 1.0f
+
+/**
+ * A widget dimension that is safe to compute with: positive and finite.
+ *
+ * `Float.NaN.coerceAtLeast(1f)` stays `NaN`, so a non-finite size must be
+ * replaced explicitly or the whole calculation becomes `NaN`.
+ */
+private fun saneSize(dp: Float): Float =
+    dp.takeIf { it.isFinite() && it > 1f } ?: 1f
