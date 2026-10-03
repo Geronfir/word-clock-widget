@@ -16,16 +16,20 @@ separate Gradle plugin; if it is removed, `@Composable` code compiles with no
 `Composer` parameter and the widget renders "Can't show content" while CI stays
 green. Removing either line is a blocker.
 
-## 3. Never read Glance `LocalSize`
-Do not use `LocalSize`/`LocalContext` size APIs inside a composable. `DpSize` is a
-value class and crashes the Kotlin 2.1.21 JVM IR backend ("Couldn't inline method
-call: CompositionLocal.get-current"). Widget size is measured from
-`AppWidgetManager.getAppWidgetOptions()` instead (see `widget/WidgetSizeResolver.kt`).
+## 3. Widget size comes from `SizeMode.Exact` + `LocalSize`
+`WordClockWidget` declares `sizeMode = SizeMode.Exact` and reads `LocalSize.current`
+inside the composition, converting it to `Float` on the same line. `LocalSize` is a
+`DpSize` (value class); passing it as a composable **parameter** crashes the Kotlin
+2.1.21 JVM IR backend ("Couldn't inline method call: CompositionLocal.get-current").
+So: read it, convert to `Float`/dp immediately, and never hand the `DpSize` across a
+composable boundary. Do not reintroduce `AppWidgetManager.getAppWidgetOptions()` for
+sizing — the platform docs say that approach "doesn't work in all situations", it
+lagged behind resizes, and some launchers report those ints in pixels, not dp.
 
-## 4. AppWidgetManager option ints are in dp
-`OPTION_APPWIDGET_MIN_WIDTH` / `OPTION_APPWIDGET_MIN_HEIGHT` are documented as
-**"in dips"**, so they are already dp. Never divide them by
-`displayMetrics.density`. The fallback (`180f`) is also dp.
+## 4. Resize is handled by `SizeMode.Exact`, not a manual update
+Do not call `updateAll` from `onAppWidgetOptionsChanged` to react to a resize:
+`SizeMode.Exact` already re-composes with the new size. A manual update there only
+duplicates work and adds latency while the user drags the resize handle.
 
 ## 5. Offline-first, no background service
 `AndroidManifest.xml` must not request `INTERNET` (or any network permission).

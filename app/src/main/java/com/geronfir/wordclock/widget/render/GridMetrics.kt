@@ -16,12 +16,11 @@ import androidx.compose.ui.unit.sp
  * this runs on every minute tick, and the widget must not do layout maths it
  * cannot afford.
  *
- * Sizes arrive as plain dp floats measured by the widget host (see
- * `WordClockWidget.provideGlance`), not from Glance's `LocalSize`. Reading
- * `LocalSize` (a `DpSize`, which is a value class) crashes the Kotlin 2.1.21/JVM
- * IR backend with "Couldn't inline method call: CompositionLocal.get-current".
- * Measuring from `AppWidgetManager` avoids the bug entirely and is equally
- * accurate.
+ * Sizes arrive as plain dp floats measured from Glance's `LocalSize` inside the
+ * composition (see `WordClockWidget`). `LocalSize` is only ever read and
+ * immediately converted to `Float`; the `DpSize` value class is never passed
+ * across a composable boundary, which is what used to crash the Kotlin IR
+ * backend with "Couldn't inline method call: CompositionLocal.get-current".
  */
 data class GridMetrics(
     val fontSize: TextUnit,
