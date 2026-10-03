@@ -1,0 +1,89 @@
+name: Release
+
+# Builds a signed release APK and attaches it to a GitHub Release.
+# Triggered by a version tag (v0.1.0) or manually from the Actions tab.
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag name to publish (e.g. v0.1.0)'
+        required: true
+
+permissions:
+  contents: write   # needed to create the Release and upload the APK
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Unit tests
+        run: ./gradlew testDebugUnitTest --stacktrace
+
+      - name: Assemble signed release APK
+        env:
+          SIGNING_KEYSTORE_BASE64: ${{ secrets.SIGNING_KEYSTORE_BASE64 }}
+          SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
+          SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if [ -z "${SIGNING_KEYSTORE_BASE64:-}" ]; then
+            echo "::error::SIGNING_KEYSTORE_BASE64 secret is not set — cannot sign the release."
+            exit 1
+          fi
+          echo "$SIGNING_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.keystore"
+          export SIGNING_KEYSTORE_PATH="$RUNNER_TEMP/release.keystore"
+          ./gradlew assembleRelease --stacktrace
+
+      - name: Verify APK (launcher + compose compiler)
+        run: |
+          set -euo pipefail
+          sudo apt-get update && sudo apt-get install -y apktool
+          bash scripts/verify-apk.sh app/build/outputs/apk/release/app-release.apk
+
+      - name: Confirm the release APK is actually signed
+        run: |
+          set -euo pipefail
+          APK=app/build/outputs/apk/release/app-release.apk
+          APKSIGNER="$(find "$ANDROID_HOME/build-tools" -name apksigner | sort | tail -n1)"
+          "$APKSIGNER" verify --print-certs "$APK"
+          # `verify` exits non-zero for an unsigned APK, so reaching here proves it is signed.
+
+      - name: Determine tag
+        id: tag
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "name=${{ github.event.inputs.tag }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "name=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Rename APK for release
+        run: |
+          set -euo pipefail
+          cp app/build/outputs/apk/release/app-release.apk \
+             "word-clock-${{ steps.tag.outputs.name }}.apk"
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.name }}
+          name: Word Clock ${{ steps.tag.outputs.name }}
+          generate_release_notes: true
+          files: word-clock-${{ steps.tag.outputs.name }}.apk

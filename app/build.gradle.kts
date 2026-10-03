@@ -18,6 +18,23 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    // Release signing. Credentials never live in the repo: CI provides them via
+    // environment variables (see .github/workflows/release.yml), and a local
+    // build can point at a keystore with the same variables. When they are
+    // absent the release build simply stays unsigned, so ordinary debug/CI
+    // builds are unaffected.
+    signingConfigs {
+        create("release") {
+            val storePath = System.getenv("SIGNING_KEYSTORE_PATH")
+            if (!storePath.isNullOrBlank()) {
+                storeFile = file(storePath)
+                storePassword = System.getenv("SIGNING_STORE_PASSWORD")
+                keyAlias = System.getenv("SIGNING_KEY_ALIAS")
+                keyPassword = System.getenv("SIGNING_KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -25,6 +42,9 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            if (!System.getenv("SIGNING_KEYSTORE_PATH").isNullOrBlank()) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
 
