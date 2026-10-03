@@ -16,13 +16,13 @@ import com.geronfir.wordclock.widget.render.gridMetricsFor
  */
 object WidgetSizeResolver {
 
-    fun metricsFor(context: Context, appWidgetId: Int): GridMetrics {
+    fun metricsFor(context: Context, appWidgetId: Int, fontScale: Float = 1.0f): GridMetrics {
         val options = runCatching {
             AppWidgetManager.getInstance(context).getAppWidgetOptions(appWidgetId)
         }.getOrNull()
 
         val (widthDp, heightDp) = sizeInDp(options)
-        return gridMetricsFor(widthDp, heightDp)
+        return gridMetricsFor(widthDp, heightDp, fontScale)
     }
 
     private fun sizeInDp(options: Bundle?): Pair<Float, Float> {

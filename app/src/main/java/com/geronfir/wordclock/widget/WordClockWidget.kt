@@ -54,7 +54,7 @@ class WordClockWidget : GlanceAppWidget() {
         val grid = LocalizationRegistry.grid(settings.languageTag)
         val localization = LocalizationRegistry.localization(settings.languageTag)
         val semanticTime = TimeExpressionEngine(settings.toTimeConfig()).expressionNow()
-        val metrics = WidgetSizeResolver.metricsFor(context, appWidgetId)
+        val metrics = WidgetSizeResolver.metricsFor(context, appWidgetId, settings.fontScale)
         val spoken = localization.format(semanticTime)
 
         provideContent {
