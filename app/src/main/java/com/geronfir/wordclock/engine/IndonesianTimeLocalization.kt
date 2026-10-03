@@ -16,82 +16,76 @@ package com.geronfir.wordclock.engine
  * ```
  *
  * The half-hour rule is the one most implementations get wrong: "setengah
- * empat" means 03:30, not 04:30. It is expressed here, per language, rather than
- * being forced into the engine's English-shaped word list.
+ * empat" means 03:30, not 04:30. Because the word *order* differs from English,
+ * both the readable phrase ([format]) and the grid words ([activeWords]) are
+ * derived from one shared token sequence — otherwise the grid would light the
+ * English order ("... LEBIH TIGA") and contradict the phrase.
  */
 object IndonesianTimeLocalization : TimeLocalization {
     override val languageTag: String = "id"
 
-    override fun format(time: SemanticTime): String {
+    override fun format(time: SemanticTime): String =
+        tokens(time).joinToString(" ") { IndonesianVocabulary.word(it) }
+
+    override fun activeWords(time: SemanticTime): List<WordKey> = tokens(time).distinct()
+
+    /** The word sequence for [time], in Indonesian order, as language-neutral keys. */
+    private fun tokens(time: SemanticTime): List<WordKey> {
         val hour = time.phraseHour12
         val minute = time.roundedMinute
 
-        val parts = buildList {
-            add(IndonesianVocabulary.word(WordKey.IT_IS)) // "JAM"
-            when {
-                minute == 0 -> {
-                    add(hourWord(hour))
-                }
-                minute == 30 -> {
-                    // "setengah <next hour>": 03:30 -> JAM SETENGAH EMPAT.
-                    add(IndonesianVocabulary.word(WordKey.HALF))
-                    add(hourWord(nextHour(hour)))
-                }
-                minute < 30 -> {
-                    add(hourWord(hour))
-                    add(IndonesianVocabulary.word(WordKey.PAST)) // "LEBIH"
-                    addAll(minuteWords(minute))
-                }
-                else -> {
-                    // "kurang <minutes to the next hour> <next hour>".
-                    // The engine already points phraseHour12 at the next hour.
-                    add(hourWord(hour))
-                    add(IndonesianVocabulary.word(WordKey.TO)) // "KURANG"
-                    addAll(minuteWords(60 - minute))
-                }
+        val out = mutableListOf(WordKey.IT_IS) // "JAM"
+        when {
+            minute == 0 -> {
+                out += hourKey(hour)
             }
-            if (time.hasDayPeriod) add(dayPeriodWord(time.hour24))
+            minute == 30 -> {
+                // "setengah <next hour>": 03:30 -> JAM SETENGAH EMPAT.
+                out += WordKey.HALF
+                out += hourKey(nextHour(hour))
+            }
+            minute < 30 -> {
+                out += hourKey(hour)
+                out += WordKey.PAST // "LEBIH"
+                out += minuteKeys(minute)
+            }
+            else -> {
+                // "kurang <minutes to the next hour> <next hour>".
+                // The engine already points phraseHour12 at the next hour.
+                out += hourKey(hour)
+                out += WordKey.TO // "KURANG"
+                out += minuteKeys(60 - minute)
+            }
         }
-
-        return parts.joinToString(" ")
+        if (time.hasDayPeriod) out += dayPeriodKey(time.hour24)
+        return out
     }
 
     private fun nextHour(hour12: Int): Int = hour12 % 12 + 1
 
-    private fun hourWord(hour12: Int): String = IndonesianVocabulary.word(
-        when (hour12) {
-            1 -> WordKey.ONE; 2 -> WordKey.TWO; 3 -> WordKey.THREE; 4 -> WordKey.FOUR
-            5 -> WordKey.FIVE; 6 -> WordKey.SIX; 7 -> WordKey.SEVEN; 8 -> WordKey.EIGHT
-            9 -> WordKey.NINE; 10 -> WordKey.TEN; 11 -> WordKey.ELEVEN; else -> WordKey.TWELVE
-        },
-    )
+    private fun hourKey(hour12: Int): WordKey = when (hour12) {
+        1 -> WordKey.ONE; 2 -> WordKey.TWO; 3 -> WordKey.THREE; 4 -> WordKey.FOUR
+        5 -> WordKey.FIVE; 6 -> WordKey.SIX; 7 -> WordKey.SEVEN; 8 -> WordKey.EIGHT
+        9 -> WordKey.NINE; 10 -> WordKey.TEN; 11 -> WordKey.ELEVEN; else -> WordKey.TWELVE
+    }
 
     /** Minutes as Indonesian words: 5/10/15/20/25 -> LIMA/…/DUA PULUH LIMA. */
-    private fun minuteWords(minutes: Int): List<String> = when (minutes) {
-        5 -> listOf(IndonesianVocabulary.word(WordKey.FIVE))
-        10 -> listOf(IndonesianVocabulary.word(WordKey.TEN))
-        15 -> listOf(IndonesianVocabulary.word(WordKey.QUARTER))
-        20 -> listOf(
-            IndonesianVocabulary.word(WordKey.TWO),
-            IndonesianVocabulary.word(WordKey.TWENTY),
-        )
-        25 -> listOf(
-            IndonesianVocabulary.word(WordKey.TWO),
-            IndonesianVocabulary.word(WordKey.TWENTY),
-            IndonesianVocabulary.word(WordKey.FIVE),
-        )
+    private fun minuteKeys(minutes: Int): List<WordKey> = when (minutes) {
+        5 -> listOf(WordKey.FIVE)
+        10 -> listOf(WordKey.TEN)
+        15 -> listOf(WordKey.QUARTER)
+        20 -> listOf(WordKey.TWO, WordKey.TWENTY)
+        25 -> listOf(WordKey.TWO, WordKey.TWENTY, WordKey.FIVE)
         else -> emptyList()
     }
 
-    private fun dayPeriodWord(hour24: Int): String = IndonesianVocabulary.word(
+    private fun dayPeriodKey(hour24: Int): WordKey = when (hour24) {
         // Indonesian day parts differ from the English engine's buckets (which
-        // treat 05:00–11:59 as morning). Indonesian: 00–10 pagi, 11–14 siang,
-        // 15–17 sore, 18–23 malam.
-        when (hour24) {
-            in 0..10 -> WordKey.IN_THE_MORNING    // PAGI
-            in 11..14 -> WordKey.IN_THE_AFTERNOON // SIANG
-            in 15..17 -> WordKey.IN_THE_EVENING   // SORE
-            else -> WordKey.AT_NIGHT              // MALAM
-        },
-    )
+        // treat 05:00–11:59 as morning): 00–10 pagi, 11–14 siang, 15–17 sore,
+        // 18–23 malam.
+        in 0..10 -> WordKey.IN_THE_MORNING    // PAGI
+        in 11..14 -> WordKey.IN_THE_AFTERNOON // SIANG
+        in 15..17 -> WordKey.IN_THE_EVENING   // SORE
+        else -> WordKey.AT_NIGHT              // MALAM
+    }
 }

@@ -22,6 +22,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+        with:
+          # On workflow_dispatch, build the requested tag, not the branch the
+          # workflow was dispatched from (otherwise a tag release could carry an
+          # APK built from a different commit).
+          ref: ${{ github.event.inputs.tag || github.ref }}
 
       - name: Set up JDK 17
         uses: actions/setup-java@v5
@@ -67,11 +72,14 @@ jobs:
 
       - name: Determine tag
         id: tag
+        env:
+          INPUT_TAG: ${{ github.event.inputs.tag }}
+          REF_NAME: ${{ github.ref_name }}
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "name=${{ github.event.inputs.tag }}" >> "$GITHUB_OUTPUT"
+          if [ -n "${INPUT_TAG:-}" ]; then
+            echo "name=$INPUT_TAG" >> "$GITHUB_OUTPUT"
           else
-            echo "name=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+            echo "name=$REF_NAME" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Rename APK for release

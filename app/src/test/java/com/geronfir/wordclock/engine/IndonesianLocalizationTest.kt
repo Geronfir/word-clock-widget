@@ -75,6 +75,26 @@ class IndonesianLocalizationTest {
     }
 
     @Test
+    fun `grid words follow indonesian order not english`() {
+        // 03:30 must light JAM, SETENGAH, EMPAT — never "LEBIH TIGA".
+        val t = engine.expressionAt(3, 30)
+        val words = localization.activeWords(t)
+        assertEquals(
+            listOf(WordKey.IT_IS, WordKey.HALF, WordKey.FOUR),
+            words,
+        )
+
+        // 02:20 needs two distinct DUA cells (hour + "dua puluh").
+        val grid = IndonesianWordGrid.grid
+        val cells = grid.activeCells(localization.activeWords(engine.expressionAt(2, 20)))
+        val duaCells = grid.rows.mapIndexed { r, row ->
+            row.mapIndexedNotNull { c, k -> if (k == WordKey.TWO) WordGrid.Cell(r, c) else null }
+        }.flatten()
+        assertEquals(2, duaCells.size)
+        assertTrue(duaCells.all { it in cells })
+    }
+
+    @Test
     fun `registry exposes indonesian as fully supported`() {
         assertTrue(LocalizationRegistry.isFullySupported("id"))
         assertEquals(IndonesianVocabulary, LocalizationRegistry.vocabulary("id"))

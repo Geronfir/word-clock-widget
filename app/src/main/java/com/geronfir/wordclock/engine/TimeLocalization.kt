@@ -1,26 +1,38 @@
 package com.geronfir.wordclock.engine
 
 /**
- * Turns a [SemanticTime] into a human-readable phrase *in one language*.
+ * Turns a [SemanticTime] into the words of *one language*.
  *
- * Word order and idiom live here, per language — never in the UI. The widget
- * asks the registry for the localization that matches the user's language and
- * calls [format]; the [TimeExpressionEngine] itself stays language-neutral.
+ * A language owns two things the widget needs:
+ *  - [format]: the readable phrase (flowing-text style), and
+ *  - [activeWords]: which [WordKey]s to light in a word grid.
  *
- * English and Indonesian are different enough that a shared "join the active
- * words" formatter cannot serve both: Indonesian says "jam" first and reads the
- * half-hour as *half toward the next hour*. Giving each language its own
- * formatter is what the extensibility requirement actually demands.
+ * Both must come from the same place. English reads minutes *past* the hour, so
+ * the engine's own word list happens to fit; Indonesian reads the hour first and
+ * the half hour as *toward the next hour*, so its grid words are genuinely
+ * different from the English ones ("JAM SETENGAH EMPAT", not "... LEBIH TIGA").
+ * Keeping [activeWords] here is what stops the grid and the phrase from drifting
+ * apart in a non-English language.
  */
 interface TimeLocalization {
     val languageTag: String
+
+    /** The readable phrase, in this language's own word order. */
     fun format(time: SemanticTime): String
+
+    /** The words to light in a word grid, in this language's own order. */
+    fun activeWords(time: SemanticTime): List<WordKey>
 }
 
-/** English: "IT IS <minutes> PAST/TO <hour>", or "IT IS <hour> O'CLOCK". */
+/**
+ * English: the engine's word list is already English-shaped, so the grid words
+ * are exactly what the engine produced ("IT IS <minutes> PAST/TO <hour>").
+ */
 object EnglishTimeLocalization : TimeLocalization {
     override val languageTag: String = "en"
 
     override fun format(time: SemanticTime): String =
         PhraseFormatter(EnglishVocabulary).format(time)
+
+    override fun activeWords(time: SemanticTime): List<WordKey> = time.activeWords
 }

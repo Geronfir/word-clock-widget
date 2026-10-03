@@ -1,6 +1,14 @@
-fix(i18n): give Indonesian its own day-period buckets
+fix(i18n): grid now shows the localized words, not the English order
 
-The English engine marks 05:00-11:59 as morning, which is wrong for Indonesian
-(03:00 is still "pagi", 11:00 is "siang", 15:00 is "sore"). The Indonesian
-formatter now derives pagi/siang/sore/malam from the real 24h hour, and the test
-covers each boundary.
+Gitar review caught a real bug: in word-grid mode the widget passed the engine's
+activeWords (English order) to the grid, so Indonesian 03:30 lit "JAM SETENGAH
+LEBIH TIGA" while the phrase said "JAM SETENGAH EMPAT".
+
+TimeLocalization now owns both the phrase and the grid words; the widget uses
+localization.activeWords(). Indonesian derives one token sequence for both, so
+they can never disagree. The grid gains a second DUA cell (needed for "dua
+puluh"/"dua belas") and drops the never-lit PUKUL cell.
+
+Also fixes the release workflow: workflow_dispatch now checks out the requested
+tag instead of the dispatching branch, and the tag input is read via env vars
+rather than interpolated into the shell.

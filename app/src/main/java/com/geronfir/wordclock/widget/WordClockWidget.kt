@@ -56,6 +56,9 @@ class WordClockWidget : GlanceAppWidget() {
         val semanticTime = TimeExpressionEngine(settings.toTimeConfig()).expressionNow()
         val metrics = WidgetSizeResolver.metricsFor(context, appWidgetId, settings.fontScale)
         val spoken = localization.format(semanticTime)
+        // The grid must light the *localized* words, not the engine's English
+        // order — otherwise Indonesian would show "JAM SETENGAH LEBIH TIGA".
+        val gridWords = localization.activeWords(semanticTime)
 
         provideContent {
             GlanceTheme {
@@ -70,7 +73,7 @@ class WordClockWidget : GlanceAppWidget() {
                     when (settings.representationStyle) {
                         RepresentationStyle.WORD_GRID -> WordGridContent(
                             grid = grid,
-                            activeWords = semanticTime.activeWords,
+                            activeWords = gridWords,
                             vocabulary = vocabulary,
                             metrics = metrics,
                             activeColor = Color(settings.activeColorArgb),
