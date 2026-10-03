@@ -57,24 +57,27 @@ line, cells can be swapped to weighted without touching the engine.
 
 ---
 
-## 4. Measuring widget size from `AppWidgetManager`, not `LocalSize`
+## 4. Widget size from `SizeMode.Exact` + `LocalSize`
 
-**Decision:** read the widget's size in `provideGlance` via
-`AppWidgetManager.getAppWidgetOptions()` and pass plain dp floats into the
-renderer.
+**Decision:** the widget declares `sizeMode = SizeMode.Exact` and reads the
+current size with `LocalSize.current` inside the composition, converting it to
+plain `Float` dp immediately.
 
-**Why:** reading Glance's `LocalSize` inside a composable crashes the Kotlin
-2.1.21 / JVM IR backend with *"Couldn't inline method call:
-CompositionLocal.get-current"*. `LocalSize` is a `DpSize`, which is a value class,
-and the inliner cannot handle it when it is passed as a parameter. Measuring
-outside the composition sidesteps the bug entirely.
+**Why:** the earlier approach — `AppWidgetManager.getAppWidgetOptions()` +
+`OPTION_APPWIDGET_MIN_WIDTH/HEIGHT` — is exactly what the platform docs warn
+against: *"that logic doesn't work in all situations"*, and since Android 12 the
+recommended approach is responsive/exact layouts. In practice it produced two
+user-visible faults: the text lagged behind a resize (it only refreshed on the
+next manual update), and some launchers report those option values in **pixels,
+not dp**, so the text could jump to the largest bucket. `SizeMode.Exact` makes the
+host re-run the composition with the real current size on every resize, in dp.
 
-**Trade-off:** the first render uses a fallback size until the host reports
-options. `onAppWidgetOptionsChanged` triggers an immediate re-render once real
-dimensions are known, so the user never sees a stuck layout. The option values
-are already in dp ("in dips" per the platform docs), so they are passed through
-unchanged — dividing by `displayMetrics.density` would shrink every widget and
-pin it to the smallest font bucket.
+**Trade-off:** `LocalSize` is a `DpSize` (value class) and passing it as a
+composable *parameter* crashes the Kotlin 2.1.21 IR backend ("Couldn't inline
+method call: CompositionLocal.get-current"). The code therefore reads it and
+converts to `Float` on the same line, never handing the `DpSize` across a
+composable boundary. `onAppWidgetOptionsChanged` no longer forces an update —
+`Exact` already re-composes — which also removes latency during a drag.
 
 ---
 

@@ -29,7 +29,7 @@ import com.geronfir.wordclock.engine.WordVocabulary
  * readers announce "IT IS QUARTER PAST THREE" instead of reading 25 loose cells.
  * Active cells also use a bold weight, so state is not conveyed by colour alone.
  *
- * [metrics] is passed in rather than read from `LocalSize` — see [GridMetrics].
+ * [metrics] is derived from the widget's current size (see [GridMetrics]).
  */
 @Composable
 fun WordGridContent(

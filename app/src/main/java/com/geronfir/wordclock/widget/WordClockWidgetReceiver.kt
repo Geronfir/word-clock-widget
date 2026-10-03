@@ -1,11 +1,9 @@
 package com.geronfir.wordclock.widget
 
-import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.os.Bundle
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
-import androidx.glance.appwidget.updateAll
 import com.geronfir.wordclock.settings.WidgetSettingsStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -17,6 +15,11 @@ import kotlinx.coroutines.launch
  * Glance's receiver already handles APPWIDGET_UPDATE / ENABLED / DISABLED /
  * DELETED / OPTIONS_CHANGED. We override the hooks to keep the per-minute alarm
  * and the per-instance settings in step with the widget lifecycle.
+ *
+ * Resizing is deliberately NOT handled here: [WordClockWidget] uses
+ * `SizeMode.Exact`, so the host re-runs the composition itself on every resize.
+ * Manually calling `updateAll` from `onAppWidgetOptionsChanged` only duplicated
+ * that work and added latency.
  */
 class WordClockWidgetReceiver : GlanceAppWidgetReceiver() {
 
@@ -62,15 +65,11 @@ class WordClockWidgetReceiver : GlanceAppWidgetReceiver() {
 
     override fun onAppWidgetOptionsChanged(
         context: Context,
-        appWidgetManager: AppWidgetManager,
+        appWidgetManager: android.appwidget.AppWidgetManager,
         appWidgetId: Int,
         newOptions: Bundle,
     ) {
+        // SizeMode.Exact already re-composes with the new size; nothing extra here.
         super.onAppWidgetOptionsChanged(context, appWidgetManager, appWidgetId, newOptions)
-        // A resize changes the layout metrics, so re-render immediately instead of
-        // waiting for the next minute tick.
-        CoroutineScope(Dispatchers.Default).launch {
-            runCatching { WordClockWidget().updateAll(context) }
-        }
     }
 }
