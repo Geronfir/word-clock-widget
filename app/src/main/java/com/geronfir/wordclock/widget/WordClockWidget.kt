@@ -28,6 +28,7 @@ import com.geronfir.wordclock.settings.WidgetSettings
 import com.geronfir.wordclock.settings.WidgetSettingsStore
 import com.geronfir.wordclock.widget.render.GridMetrics
 import com.geronfir.wordclock.widget.render.WordGridContent
+import com.geronfir.wordclock.widget.render.flowingTextMetrics
 import com.geronfir.wordclock.widget.render.gridMetricsFor
 
 /**
@@ -75,7 +76,17 @@ class WordClockWidget : GlanceAppWidget() {
             // the `DpSize` value class is never passed across a composable
             // boundary (that is what used to crash the Kotlin IR backend).
             val size = LocalSize.current
-            val metrics = gridMetricsFor(size.width.value, size.height.value, settings.fontScale)
+            val widthDp = size.width.value
+            val heightDp = size.height.value
+
+            val useGrid = settings.representationStyle == RepresentationStyle.WORD_GRID &&
+                grid != null && gridWords != null
+
+            val metrics = if (useGrid) {
+                gridMetricsFor(widthDp, heightDp, settings.fontScale, grid!!.columns, grid.rows.size)
+            } else {
+                flowingTextMetrics(widthDp, heightDp, spoken.length, settings.fontScale)
+            }
 
             GlanceTheme {
                 Column(
@@ -90,12 +101,10 @@ class WordClockWidget : GlanceAppWidget() {
                     // have. When the language has none (its phrase order cannot be
                     // laid out as a matrix), fall back to flowing text rather than
                     // light the wrong cells.
-                    if (settings.representationStyle == RepresentationStyle.WORD_GRID &&
-                        grid != null && gridWords != null
-                    ) {
+                    if (useGrid) {
                         WordGridContent(
-                            grid = grid,
-                            activeWords = gridWords,
+                            grid = grid!!,
+                            activeWords = gridWords!!,
                             vocabulary = vocabulary,
                             metrics = metrics,
                             activeColor = Color(settings.activeColorArgb),

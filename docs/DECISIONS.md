@@ -51,9 +51,9 @@ not a weighted cell.
 cells keep columns aligned at every widget size and behave identically on every
 API level.
 
-**Trade-off:** very wide widgets leave some horizontal slack rather than stretching
-the cells. Acceptable for an MVP; if Glance gains `defaultWeight()` on the pinned
-line, cells can be swapped to weighted without touching the engine.
+**Trade-off:** the cell width must be derived from the widget's real size (see
+decision 5), otherwise the row can be wider than the widget and the text overflows
+its parent — which is exactly what happened with the old fixed-bucket sizing.
 
 ---
 
@@ -81,7 +81,27 @@ composable boundary. `onAppWidgetOptionsChanged` no longer forces an update —
 
 ---
 
-## 5. Grid token sharing (FIVE / TEN used twice)
+## 5. Continuous type scale instead of fixed size buckets
+
+**Decision:** `gridMetricsFor` / `flowingTextMetrics` compute the font size and
+cell width **continuously** from the widget's real size, instead of picking from a
+handful of fixed buckets.
+
+**Why:** buckets are only correct at the sizes they were tuned for. At the extremes
+they failed: a small widget kept a bucket whose 5-column row was wider than the
+widget (the text overflowed its parent), and the font stepped abruptly as the user
+dragged. A continuous function that derives the cell width from the usable width
+and caps the font by both cell width and row height always fits, at any size. Both
+are pure functions, so the guarantee is unit-tested (including 30 dp and 5000 dp).
+
+**Trade-off:** the exact point size at a given widget size differs slightly from the
+old buckets, and very large widgets are capped at `MAX_FONT_SP` (48 sp) rather than
+growing without bound — deliberate, so a huge widget cannot render one giant word
+that no longer reads as a clock.
+
+---
+
+## 6. Grid token sharing (FIVE / TEN used twice)
 
 **Decision:** the English grid stores `FIVE` and `TEN` exactly once each; they
 serve as both minute units and hour words.
@@ -96,7 +116,7 @@ instead of being crammed into the matrix.
 
 ---
 
-## 6. Configuration scoped per widget instance
+## 7. Configuration scoped per widget instance
 
 **Decision:** DataStore keys are namespaced as `widget_<appWidgetId>_<name>`, and
 `onDeleted` removes the instance's keys while `onRestored` migrates them.
@@ -111,12 +131,12 @@ irrelevant at this scale.
 
 ---
 
-## 7. Engine has zero Android dependencies
+## 8. Engine has zero Android dependencies
 
 **Decision:** everything in `engine/` is pure Kotlin + `java.time`.
 
 **Why:** it makes the time-to-words logic testable in milliseconds on a plain JVM,
-so CI needs no emulator. All 53 tests — including a full sweep of all 1,440 minutes
+so CI needs no emulator. The suite — including a full sweep of all 1,440 minutes
 of the day — run in seconds.
 
 **Trade-off:** the engine cannot use Android's `Time`/`Calendar` helpers. This is
@@ -125,7 +145,7 @@ every supported API level via desugaring (minSdk 26 already has it natively).
 
 ---
 
-## 8. Compose compiler plugin is mandatory (Kotlin 2.x)
+## 9. Compose compiler plugin is mandatory (Kotlin 2.x)
 
 **Decision:** apply `org.jetbrains.kotlin.plugin.compose` (version pinned to the Kotlin version) and
 set `buildFeatures.compose = true`.
