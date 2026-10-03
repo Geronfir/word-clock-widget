@@ -21,7 +21,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.geronfir.wordclock.engine.LocalizationRegistry
-import com.geronfir.wordclock.engine.PhraseFormatter
 import com.geronfir.wordclock.engine.RepresentationStyle
 import com.geronfir.wordclock.engine.TimeExpressionEngine
 import com.geronfir.wordclock.settings.WidgetSettings
@@ -53,9 +52,10 @@ class WordClockWidget : GlanceAppWidget() {
 
         val vocabulary = LocalizationRegistry.vocabulary(settings.languageTag)
         val grid = LocalizationRegistry.grid(settings.languageTag)
+        val localization = LocalizationRegistry.localization(settings.languageTag)
         val semanticTime = TimeExpressionEngine(settings.toTimeConfig()).expressionNow()
         val metrics = WidgetSizeResolver.metricsFor(context, appWidgetId)
-        val spoken = PhraseFormatter(vocabulary).format(semanticTime)
+        val spoken = localization.format(semanticTime)
 
         provideContent {
             GlanceTheme {
