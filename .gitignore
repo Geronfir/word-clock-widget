@@ -23,3 +23,7 @@ skills-lock.json
 
 # OS
 .DS_Store
+
+# Scratch
+.commitmsg.txt
+.cm.txt
