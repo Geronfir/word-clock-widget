@@ -8,7 +8,7 @@ import org.junit.Test
  * Unit tests for the real Indonesian localization.
  *
  * These prove the second language is not a mere word swap: the phrase order is
- * Indonesian (hour first, *lebih*/*kurang*, and the half hour read as *setengah*
+ * Indonesian (hour first, "lebih"/"kurang", and the half hour read as "setengah"
  * toward the next hour), while the engine output it consumes is unchanged.
  */
 class IndonesianLocalizationTest {

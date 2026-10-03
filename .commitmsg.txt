@@ -1,0 +1,4 @@
+fix(test): close the KDoc properly in IndonesianLocalizationTest
+
+The comment contained `*lebih*/*kurang*`; the `*/` inside it terminated the
+block comment early and broke compilation.
