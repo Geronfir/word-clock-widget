@@ -134,6 +134,9 @@ fun HomeScreen() {
 @Composable
 private fun AddWidgetButton() {
     val context = LocalContext.current
+    // Resolve the fallback text through stringResource so a Configuration change
+    // (locale, font scale) re-resolves it — lint's LocalContextGetResourceValueCall.
+    val manualHint = stringResource(R.string.main_add_hint)
     Button(
         onClick = {
             val manager = AppWidgetManager.getInstance(context)
@@ -141,11 +144,7 @@ private fun AddWidgetButton() {
                 val provider = ComponentName(context, WordClockWidgetReceiver::class.java)
                 manager.requestPinAppWidget(provider, null, null)
             } else {
-                Toast.makeText(
-                    context,
-                    context.getString(R.string.main_add_hint),
-                    Toast.LENGTH_LONG,
-                ).show()
+                Toast.makeText(context, manualHint, Toast.LENGTH_LONG).show()
             }
         },
     ) {
