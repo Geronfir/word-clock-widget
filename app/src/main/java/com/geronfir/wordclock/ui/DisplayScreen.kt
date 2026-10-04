@@ -154,8 +154,12 @@ fun DisplayScreen() {
             delay(millisUntilNextMinute())
         }
     }
-    val engine = remember { TimeExpressionEngine() }
-    val semanticTime = remember(nowEpochSecond) {
+    // The engine must be rebuilt when the format changes, and the snapshot must
+    // be recomputed with it: otherwise the 24-hour and day-period switches move
+    // nothing in the preview while the widget itself does honour them.
+    val timeConfig = settings.toTimeConfig()
+    val engine = remember(timeConfig) { TimeExpressionEngine(timeConfig) }
+    val semanticTime = remember(nowEpochSecond, engine) {
         val now = java.time.Instant.ofEpochSecond(nowEpochSecond)
             .atZone(java.time.ZoneId.systemDefault())
         engine.expressionAt(now.hour, now.minute)
