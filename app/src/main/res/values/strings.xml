@@ -66,4 +66,15 @@
     <string name="display_no_widgets">No widget on the home screen yet. Add one first from the Home tab.</string>
     <string name="display_style_grid_hint">The word grid is English-only; other languages use flowing text.</string>
     <string name="display_reset">Reset to defaults</string>
+
+    <!-- Home screen: summary of the placed widget's settings -->
+    <string name="home_summary_empty">No widget on your home screen yet — add one above, then its settings show up here.</string>
+    <string name="home_summary_format_12">12-hour</string>
+    <string name="home_summary_format_24">24-hour</string>
+    <string name="home_summary_day_period_on">with day period</string>
+    <string name="home_summary_day_period_off">without day period</string>
+
+    <!-- Accessibility -->
+    <string name="cd_theme_swatch">Colours for %1$s</string>
+    <string name="cd_open_source_link">Open the source code page in a browser</string>
 </resources>

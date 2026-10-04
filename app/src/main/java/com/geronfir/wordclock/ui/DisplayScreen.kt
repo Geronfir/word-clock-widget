@@ -1,7 +1,5 @@
 package com.geronfir.wordclock.ui
 
-import android.appwidget.AppWidgetManager
-import android.content.ComponentName
 import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -59,9 +57,12 @@ import com.geronfir.wordclock.settings.ThemePreset
 import com.geronfir.wordclock.settings.WidgetSettings
 import com.geronfir.wordclock.settings.WidgetSettingsStore
 import com.geronfir.wordclock.ui.components.WordClockPreview
+import com.geronfir.wordclock.ui.components.fontLabel
+import com.geronfir.wordclock.ui.components.installedWidgetIds
+import com.geronfir.wordclock.ui.components.languageLabel
+import com.geronfir.wordclock.ui.components.styleLabel
 import com.geronfir.wordclock.ui.theme.WordClockTheme
 import com.geronfir.wordclock.widget.WordClockWidget
-import com.geronfir.wordclock.widget.WordClockWidgetReceiver
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -70,14 +71,6 @@ private const val MILLIS_PER_MINUTE = 60_000L
 
 private fun millisUntilNextMinute(): Long =
     MILLIS_PER_MINUTE - (System.currentTimeMillis() % MILLIS_PER_MINUTE)
-
-/** Widget ids currently placed on the home screen, in the launcher's order. */
-private fun installedWidgetIds(context: Context): IntArray =
-    runCatching {
-        AppWidgetManager.getInstance(context).getAppWidgetIds(
-            ComponentName(context, WordClockWidgetReceiver::class.java),
-        )
-    }.getOrDefault(IntArray(0))
 
 /**
  * Survives a configuration change (rotation, locale, font scale) so an edit the
@@ -196,6 +189,7 @@ fun DisplayScreen() {
             )
             Spacer(Modifier.height(16.dp))
 
+            SectionTitle(R.string.display_preview_title)
             WordClockPreview(settings = settings, semanticTime = semanticTime)
 
             SectionTitle(R.string.display_language)
@@ -389,32 +383,6 @@ private fun SwitchRow(
         Switch(checked = checked, onCheckedChange = onCheckedChange)
     }
 }
-
-@Composable
-private fun languageLabel(tag: String): String = stringResource(
-    when (tag) {
-        "id" -> R.string.config_language_id
-        else -> R.string.config_language_en
-    },
-)
-
-@Composable
-private fun styleLabel(style: RepresentationStyle): String = stringResource(
-    when (style) {
-        RepresentationStyle.WORD_GRID -> R.string.config_style_grid
-        else -> R.string.config_style_flowing
-    },
-)
-
-@Composable
-private fun fontLabel(scale: Float): String = stringResource(
-    when {
-        scale <= 0.8f -> R.string.config_font_small
-        scale >= 1.4f -> R.string.config_font_large
-        scale >= 1.2f -> R.string.config_font_medium
-        else -> R.string.config_font_default
-    },
-)
 
 @Preview(showBackground = true)
 @Composable

@@ -62,7 +62,12 @@ fun AboutScreen() {
         Spacer(Modifier.height(16.dp))
 
         AboutRow(
-            icon = { Icon(Icons.Outlined.Settings, contentDescription = null) },
+            icon = {
+                Icon(
+                    Icons.Outlined.Settings,
+                    contentDescription = stringResource(R.string.cd_open_source_link),
+                )
+            },
             title = stringResource(R.string.about_source_title),
             body = sourceUrl,
             onClick = { uriHandler.openUri(sourceUrl) },
