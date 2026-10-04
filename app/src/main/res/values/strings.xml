@@ -3,9 +3,25 @@
     <string name="app_name">Word Clock</string>
     <string name="widget_description">Shows the time as words instead of digits.</string>
 
+    <!-- Main screen -->
     <string name="main_description">Shows the time as words instead of digits, right on your home screen.</string>
     <string name="main_add_hint">To add it: long-press an empty spot on your home screen, tap Widgets, then choose Word Clock.</string>
+    <string name="main_add_widget_button">Add widget to home screen</string>
+    <string name="main_settings_summary_title">Current settings</string>
 
+    <!-- Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_display">Display</string>
+    <string name="nav_about">About</string>
+
+    <!-- About screen -->
+    <string name="about_title">About</string>
+    <string name="about_offline_title">Offline-first</string>
+    <string name="about_offline_body">Word Clock works entirely on your device. It has no network access and sends nothing anywhere.</string>
+    <string name="about_source_title">Source code</string>
+    <string name="about_source_url" translatable="false">https://github.com/Geronfir/word-clock-widget</string>
+
+    <!-- Widget configuration screen -->
     <string name="config_title">Word Clock settings</string>
 
     <string name="config_language">Language</string>
