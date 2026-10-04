@@ -23,12 +23,27 @@ import androidx.compose.ui.graphics.Color
  */
 
 private val MidnightActive = Color(0xFFE8E8EC)
-private val MidnightInactive = Color(0xFF3A3A42)
 private val MidnightBackground = Color(0xFF101014)
 
 private val DaylightActive = Color(0xFF101014)
-private val DaylightInactive = Color(0xFFB8BCC4)
 private val DaylightBackground = Color(0xFFF4F5F7)
+
+/**
+ * `onSurfaceVariant` is the colour Material 3 uses for *readable* secondary text
+ * (supporting lines, unselected navigation labels, section captions), so it must
+ * clear WCAG AA (4.5:1) against the surface. The widget's own inactive-word
+ * colour does NOT: #3A3A42 on #101014 is only 1.68:1, which is fine for
+ * unlit words in a grid (they are decoration, not prose) but unreadable for
+ * prose. Hence separate constants — reusing the inactive-word colour here made
+ * every supporting line nearly invisible on Android 8-11, where the dynamic
+ * colour scheme is unavailable.
+ */
+private val MidnightOnSurfaceVariant = Color(0xFFA0A0AA) // 7.33:1 on #101014
+private val DaylightOnSurfaceVariant = Color(0xFF50545C) // 6.97:1 on #F4F5F7
+
+// `outline` is a border, not text: WCAG's 3:1 non-text threshold applies.
+private val MidnightOutline = Color(0xFF70747E) // 4.06:1 on #101014
+private val DaylightOutline = Color(0xFF8A8E96) // 3.01:1 on #F4F5F7
 
 private val WordClockDarkColors = darkColorScheme(
     primary = MidnightActive,
@@ -42,8 +57,8 @@ private val WordClockDarkColors = darkColorScheme(
     surface = MidnightBackground,
     onSurface = MidnightActive,
     surfaceVariant = MidnightBackground,
-    onSurfaceVariant = MidnightInactive,
-    outline = MidnightInactive,
+    onSurfaceVariant = MidnightOnSurfaceVariant,
+    outline = MidnightOutline,
 )
 
 private val WordClockLightColors = lightColorScheme(
@@ -58,8 +73,8 @@ private val WordClockLightColors = lightColorScheme(
     surface = DaylightBackground,
     onSurface = DaylightActive,
     surfaceVariant = DaylightBackground,
-    onSurfaceVariant = DaylightInactive,
-    outline = DaylightInactive,
+    onSurfaceVariant = DaylightOnSurfaceVariant,
+    outline = DaylightOutline,
 )
 
 /**

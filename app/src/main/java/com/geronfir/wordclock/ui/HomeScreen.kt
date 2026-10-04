@@ -64,7 +64,11 @@ private fun millisUntilNextMinute(): Long =
 fun HomeScreen() {
     // Epoch-seconds snapshot. One Long is cheap to recompose and avoids
     // holding a java.time value class across composition.
-    var nowEpochSecond by remember { mutableLongStateOf(0L) }
+    //
+    // Seeded with the current time, not 0: the LaunchedEffect below only runs
+    // after the first frame, so starting at 0 would light up the words for Unix
+    // epoch (e.g. 07:00 in Asia/Jakarta) and flash a wrong time on open.
+    var nowEpochSecond by remember { mutableLongStateOf(System.currentTimeMillis() / 1000L) }
     LaunchedEffect(Unit) {
         while (true) {
             nowEpochSecond = System.currentTimeMillis() / 1000L

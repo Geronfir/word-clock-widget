@@ -140,7 +140,9 @@ fun DisplayScreen() {
     }
 
     // Live clock, same minute-boundary loop the Home preview uses.
-    var nowEpochSecond by remember { mutableLongStateOf(0L) }
+    // Seeded with the current time, not 0: the loop only runs after the first
+    // frame, so starting at 0 would flash the Unix-epoch time on open.
+    var nowEpochSecond by remember { mutableLongStateOf(System.currentTimeMillis() / 1000L) }
     LaunchedEffect(Unit) {
         while (true) {
             nowEpochSecond = System.currentTimeMillis() / 1000L
