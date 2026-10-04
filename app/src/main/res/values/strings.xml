@@ -50,4 +50,20 @@
     <string name="config_font_large">Extra large</string>
 
     <string name="config_save">Save</string>
+
+    <!-- Display screen (in-app) -->
+    <string name="display_preview_title">Preview</string>
+    <string name="display_language">Language</string>
+    <string name="display_style">Display style</string>
+    <string name="display_format">Format</string>
+    <string name="display_font_size">Font size</string>
+    <string name="display_colors">Colours</string>
+    <string name="display_apply">Apply to my widgets</string>
+    <plurals name="display_applied">
+        <item quantity="one">Applied to %1$d widget</item>
+        <item quantity="other">Applied to %1$d widgets</item>
+    </plurals>
+    <string name="display_no_widgets">No widget on the home screen yet. Add one first from the Home tab.</string>
+    <string name="display_style_grid_hint">The word grid is English-only; other languages use flowing text.</string>
+    <string name="display_reset">Reset to defaults</string>
 </resources>
