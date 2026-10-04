@@ -1,4 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!--
+      Framework theme on purpose: the Compose material3 artifact ships no XML
+      styles, so there is no Theme.Material3 XML parent to inherit from. All
+      Material 3 theming lives in ui/theme/Theme.kt (WordClockTheme); this XML
+      theme only needs to be a minimal, dependency-free host for the activities
+      (no action bar, framework dark material so the config screen matches the
+      widget's dark look before Compose draws its first frame).
+    -->
     <style name="Theme.WordClock" parent="android:Theme.Material.NoActionBar" />
 </resources>
