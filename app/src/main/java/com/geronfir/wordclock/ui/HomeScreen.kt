@@ -59,8 +59,9 @@ private fun millisUntilNextMinute(): Long =
  *
  * The preview reuses the real engine ([TimeExpressionEngine]) and the real
  * English word grid, so what the user sees here is exactly what the widget
- * will light up. It re-renders on a delayed loop ([TICK_MS]); the engine
- * snaps to the nearest five minutes, so the lit words change once per 5.
+ * will light up. It re-renders on a delayed loop that wakes on the minute
+ * boundary ([millisUntilNextMinute]); the engine snaps to the nearest five
+ * minutes, so the lit words change at most once per minute.
  */
 @Composable
 fun HomeScreen() {

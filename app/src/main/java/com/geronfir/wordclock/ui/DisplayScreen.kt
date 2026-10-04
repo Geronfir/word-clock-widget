@@ -390,22 +390,31 @@ private fun SwitchRow(
     }
 }
 
-private fun languageLabel(tag: String): String = when (tag) {
-    "id" -> "Bahasa Indonesia"
-    else -> "English"
-}
+@Composable
+private fun languageLabel(tag: String): String = stringResource(
+    when (tag) {
+        "id" -> R.string.config_language_id
+        else -> R.string.config_language_en
+    },
+)
 
-private fun styleLabel(style: RepresentationStyle): String = when (style) {
-    RepresentationStyle.WORD_GRID -> "Word grid"
-    else -> "Flowing text"
-}
+@Composable
+private fun styleLabel(style: RepresentationStyle): String = stringResource(
+    when (style) {
+        RepresentationStyle.WORD_GRID -> R.string.config_style_grid
+        else -> R.string.config_style_flowing
+    },
+)
 
-private fun fontLabel(scale: Float): String = when {
-    scale <= 0.8f -> "Small"
-    scale >= 1.4f -> "Extra large"
-    scale >= 1.2f -> "Large"
-    else -> "Default"
-}
+@Composable
+private fun fontLabel(scale: Float): String = stringResource(
+    when {
+        scale <= 0.8f -> R.string.config_font_small
+        scale >= 1.4f -> R.string.config_font_large
+        scale >= 1.2f -> R.string.config_font_medium
+        else -> R.string.config_font_default
+    },
+)
 
 @Preview(showBackground = true)
 @Composable
