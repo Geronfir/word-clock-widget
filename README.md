@@ -1,5 +1,10 @@
 # Word Clock Widget
 
+[![Build](https://github.com/Geronfir/word-clock-widget/actions/workflows/build.yml/badge.svg)](https://github.com/Geronfir/word-clock-widget/actions/workflows/build.yml)
+[![Release](https://img.shields.io/github/v/release/Geronfir/word-clock-widget?label=release)](https://github.com/Geronfir/word-clock-widget/releases)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+![Platform](https://img.shields.io/badge/platform-Android%208%2B-brightgreen)
+
 An Android home-screen widget that tells the time in **words** instead of digits —
 "IT IS QUARTER PAST THREE", lit up in a letter-grid, exactly like a physical word
 clock.
@@ -8,8 +13,8 @@ Built for reliability, battery efficiency and extensibility: the time-to-words
 logic is a plain, fully unit-tested Kotlin library with no Android dependency, and
 the widget is a thin rendering shell on top of it.
 
-> Status: MVP complete. Word Grid and Flowing Text styles, per-widget
-> configuration, offline-first, no background service.
+> **v1.0** — Word Grid and Flowing Text styles, per-widget configuration,
+> offline-first, no background service. 71 JVM unit tests, all green in CI.
 
 ---
 
@@ -120,4 +125,8 @@ choices (Glance, AlarmManager, value-class workarounds, grid token sharing).
 
 ## License
 
-Private project. All rights reserved.
+MIT — see [LICENSE](LICENSE).
+
+---
+
+<sub>Written, built and released from an Android phone (Termux + GitHub Actions).</sub>
